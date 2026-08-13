@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "web/dist",
+  "headers": [],
+  "rewrites": [
+    {
+      "source": "/((?!assets/|mobile/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "KapeFlow Admin",
+    "slug": "kapeflow-admin",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "experiments": {
+      "baseUrl": "/mobile"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.kapeflow.admin"
+    }
+  }
+}

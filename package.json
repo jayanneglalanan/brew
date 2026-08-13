@@ -1,0 +1,18 @@
+{
+  "name": "kapeflow-admin",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "web",
+    "mobileapp",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:web",
+    "dev:web": "npm --workspace web run dev",
+    "build:web": "npm run build:data && npm --workspace mobileapp run export:web && npm --workspace web run build",
+    "build:data": "npm --workspace mock-data run build",
+    "build:mobile-web": "npm run build:data && npm --workspace mobileapp run export:web",
+    "dev:mobile": "npm --workspace mobileapp run start"
+  }
+}

@@ -1,0 +1,9 @@
+[
+  { "id": "cat-coffee", "name": "Coffee", "icon": "☕" },
+  { "id": "cat-noncoffee", "name": "Non-Coffee", "icon": "🥤" },
+  { "id": "cat-tea", "name": "Tea", "icon": "🍵" },
+  { "id": "cat-pastries", "name": "Pastries", "icon": "🥐" },
+  { "id": "cat-desserts", "name": "Desserts", "icon": "🍰" },
+  { "id": "cat-snacks", "name": "Snacks", "icon": "🍟" },
+  { "id": "cat-addons", "name": "Add-ons", "icon": "➕" }
+]

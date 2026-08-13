@@ -1,0 +1,6 @@
+[
+  { "id": "s1", "name": "Maria", "role": "owner", "pin": "1234", "avatarColor": "#8B5E3C" },
+  { "id": "s2", "name": "John", "role": "manager", "pin": "2345", "avatarColor": "#3B82F6" },
+  { "id": "s3", "name": "Ana", "role": "cashier", "pin": "3456", "avatarColor": "#EC4899" },
+  { "id": "s4", "name": "Dave", "role": "cashier", "pin": "4567", "avatarColor": "#10B981" }
+]
