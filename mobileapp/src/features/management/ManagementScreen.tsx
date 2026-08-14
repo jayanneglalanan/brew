@@ -50,7 +50,7 @@ export default function ManagementScreen() {
     { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
     { header: 'Tx', key: 'transactions', align: 'right' },
     { header: 'Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.criticalOn : colors.onCardSub }}>{r.voids}</Text> },
+    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
   ];
 
   const logCols: Column<(typeof logs)[number]>[] = [

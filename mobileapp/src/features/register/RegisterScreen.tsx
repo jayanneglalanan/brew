@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   banner: { backgroundColor: colors.goodSoft, borderColor: colors.good, borderWidth: 1, borderRadius: radius.md, padding: gap.md, marginBottom: gap.lg },
   bannerText: { color: colors.good, fontWeight: '700', fontSize: 13 },
   empty: { textAlign: 'center', color: colors.sub, paddingVertical: gap.xl, fontSize: 13 },
-  cartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bg, borderRadius: radius.sm, padding: gap.sm, marginBottom: gap.xs, gap: gap.sm },
+  cartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F7F2EA', borderRadius: radius.sm, padding: gap.sm, marginBottom: gap.xs, gap: gap.sm },
   bold: { fontSize: 13, fontWeight: '700', color: colors.ink },
   muted: { fontSize: 12, color: colors.sub },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: gap.xs },

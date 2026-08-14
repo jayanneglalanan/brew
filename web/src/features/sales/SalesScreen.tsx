@@ -161,8 +161,8 @@ export default function SalesScreen() {
               <div className="mt-3 space-y-1.5">
                 {metrics.pay.map((p: PaymentBreakdown) => (
                   <div key={p.method} className="flex items-center justify-between text-xs">
-                    <span className="text-stone-200">{p.label}</span>
-                    <span className="font-medium text-stone-100">{formatPercent(p.share, 0)} · {formatPeso(p.sales, { compact: true })}</span>
+                    <span className="text-stone-700">{p.label}</span>
+                    <span className="font-medium text-stone-800">{formatPercent(p.share, 0)} · {formatPeso(p.sales, { compact: true })}</span>
                   </div>
                 ))}
               </div>
@@ -214,7 +214,7 @@ export default function SalesScreen() {
               rows={metrics.pay}
               rowKey={(r) => r.method}
             />
-            <p className="mt-4 text-xs text-stone-300">Breakdown includes completed transactions only.</p>
+            <p className="mt-4 text-xs text-stone-500">Breakdown includes completed transactions only.</p>
           </Card>
         </div>
       )}
@@ -259,7 +259,7 @@ function TransactionsTable({ rows, staffByName }: { rows: Transaction[]; staffBy
     status: t.status,
   }));
   const columns: Column<TxRow>[] = [
-    { header: 'Order #', key: 'orderNumber', render: (r) => <span className="font-medium text-stone-100">{r.orderNumber}</span> },
+    { header: 'Order #', key: 'orderNumber', render: (r) => <span className="font-medium text-stone-800">{r.orderNumber}</span> },
     { header: 'Time', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
     { header: 'Cashier', key: 'cashierName' },
     { header: 'Items', key: 'itemsCount', className: 'text-right' },

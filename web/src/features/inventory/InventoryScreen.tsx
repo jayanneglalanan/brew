@@ -31,9 +31,9 @@ const STATUS_LABEL: Record<string, string> = { good: '🟢 Good', low: '🟡 Low
 const TYPE_LABEL: Record<string, string> = { purchase: 'Purchase', wastage: 'Wastage', damaged: 'Damaged', adjustment: 'Adjustment' };
 
 function statusColor(status: string) {
-  if (status === 'critical') return 'text-rose-300';
-  if (status === 'low') return 'text-amber-300';
-  return 'text-emerald-300';
+  if (status === 'critical') return 'text-rose-600';
+  if (status === 'low') return 'text-amber-600';
+  return 'text-emerald-600';
 }
 
 export default function InventoryScreen() {
@@ -60,7 +60,7 @@ export default function InventoryScreen() {
   const filteredItems = statusRows.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
 
   const itemColumns: Column<(typeof statusRows)[number]>[] = [
-    { header: 'Ingredient', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
+    { header: 'Ingredient', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Current', key: 'current', className: 'text-right', render: (r) => <b className={statusColor(r.status)}>{r.current}</b> },
     { header: 'Unit', key: 'unit' },
     { header: 'Reorder Level', key: 'reorderLevel', className: 'text-right' },
@@ -68,19 +68,19 @@ export default function InventoryScreen() {
   ];
 
   const movementColumns: Column<(typeof movement)[number]>[] = [
-    { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
-    { header: 'Purchases', key: 'purchases', className: 'text-right', render: (r) => <span className="text-emerald-300">+{formatNumber(r.purchases)}</span> },
+    { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
+    { header: 'Purchases', key: 'purchases', className: 'text-right', render: (r) => <span className="text-emerald-600">+{formatNumber(r.purchases)}</span> },
     { header: 'Sales Consumption', key: 'salesConsumption', className: 'text-right', render: (r) => `-${formatNumber(r.salesConsumption)}` },
-    { header: 'Wastage', key: 'wastage', className: 'text-right', render: (r) => <span className="text-amber-300">-{formatNumber(r.wastage)}</span> },
-    { header: 'Damaged', key: 'damaged', className: 'text-right', render: (r) => <span className="text-rose-300">-{formatNumber(r.damaged)}</span> },
-    { header: 'Adjustments', key: 'adjustments', className: 'text-right', render: (r) => <span className="text-blue-300">{r.adjustments > 0 ? '+' : ''}{r.adjustments}</span> },
+    { header: 'Wastage', key: 'wastage', className: 'text-right', render: (r) => <span className="text-amber-600">-{formatNumber(r.wastage)}</span> },
+    { header: 'Damaged', key: 'damaged', className: 'text-right', render: (r) => <span className="text-rose-600">-{formatNumber(r.damaged)}</span> },
+    { header: 'Adjustments', key: 'adjustments', className: 'text-right', render: (r) => <span className="text-blue-600">{r.adjustments > 0 ? '+' : ''}{r.adjustments}</span> },
     { header: 'Current Stock', key: 'currentStock', className: 'text-right', render: (r) => <b>{r.currentStock} {r.unit}</b> },
   ];
 
   const wasteColumns: Column<(typeof wastage)[number]>[] = [
-    { header: 'Item', key: 'item', render: (r) => <span className="font-medium text-stone-100">{r.item}</span> },
+    { header: 'Item', key: 'item', render: (r) => <span className="font-medium text-stone-800">{r.item}</span> },
     { header: 'Type', key: 'type', render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{TYPE_LABEL[r.type]}</Badge> },
-    { header: 'Qty', key: 'qty', className: 'text-right', render: (r) => <b className="text-rose-300">-{r.qty} {r.unit}</b> },
+    { header: 'Qty', key: 'qty', className: 'text-right', render: (r) => <b className="text-rose-600">-{r.qty} {r.unit}</b> },
     { header: 'Note', key: 'note' },
     { header: 'Date', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
   ];
@@ -150,7 +150,7 @@ export default function InventoryScreen() {
       {tab === 'low' && (
         <Card title="Low & Critical Stock" subtitle={`${lowRows.length} items need attention`}>
           {lowRows.length === 0 ? (
-            <p className="py-8 text-center text-sm text-stone-300">All stock levels are healthy 🎉</p>
+            <p className="py-8 text-center text-sm text-stone-500">All stock levels are healthy 🎉</p>
           ) : (
             <Table columns={itemColumns} rows={lowRows} rowKey={(r) => r.itemId} />
           )}
@@ -173,7 +173,7 @@ export default function InventoryScreen() {
                   key={t}
                   onClick={() => setMvType(t)}
                   className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                    mvType === t ? 'border-brand-600 bg-brand-600 text-white' : 'border-stone-300 text-stone-200 hover:bg-white/15'
+                    mvType === t ? 'border-brand-600 bg-brand-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-50'
                   }`}
                 >
                   {TYPE_LABEL[t]}

@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4EDE3' },
   closeText: { fontSize: 14, color: colors.sub, fontWeight: '700' },
   sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: colors.onCardSub, marginBottom: gap.sm },
-  item: { flexDirection: 'row', alignItems: 'center', paddingVertical: gap.md, borderBottomWidth: 1, borderBottomColor: 'rgba(253,246,236,0.12)' },
+  item: { flexDirection: 'row', alignItems: 'center', paddingVertical: gap.md, borderBottomWidth: 1, borderBottomColor: 'rgba(61,48,42,0.08)' },
   itemIcon: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: 'center', justifyContent: 'center' },
   itemLabel: { fontSize: 15, fontWeight: '700', color: colors.onCard },
   itemDesc: { fontSize: 12, color: colors.onCardSub, marginTop: 2 },

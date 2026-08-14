@@ -28,8 +28,8 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 className="text-xl font-bold text-stone-900">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-stone-500">{subtitle}</p>}
+        <h1 className="text-xl font-bold text-stone-100">{title}</h1>
+        {subtitle && <p className="mt-0.5 text-sm text-stone-300">{subtitle}</p>}
       </div>
       {action}
     </div>

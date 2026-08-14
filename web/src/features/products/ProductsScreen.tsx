@@ -51,14 +51,14 @@ export default function ProductsScreen() {
   const productColumns: Column<Product>[] = [
     { header: 'Product', key: 'name', render: (r) => (
         <div>
-          <span className="font-medium text-stone-100">{r.name}</span>
-          <p className="text-xs text-stone-300">{r.id}</p>
+          <span className="font-medium text-stone-800">{r.name}</span>
+          <p className="text-xs text-stone-500">{r.id}</p>
         </div>
       ) },
-    { header: 'Category', key: 'category', render: (r) => <span className="text-stone-200">{r.category}</span> },
+    { header: 'Category', key: 'category', render: (r) => <span className="text-stone-700">{r.category}</span> },
     { header: 'Price', key: 'price', className: 'text-right', render: (r) => formatPeso(r.price) },
-    { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-300">{formatPeso(r.cost)}</span> },
-    { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-300">{formatPeso(r.price - r.cost)}</span> },
+    { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
+    { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.price - r.cost)}</span> },
     { header: 'Margin', key: 'margin', className: 'text-right', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
     { header: 'Status', key: 'status', render: (r) => (
         <button onClick={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })} title="Toggle availability">
@@ -68,7 +68,7 @@ export default function ProductsScreen() {
     { header: 'Actions', key: 'actions', render: (r) => (
         <div className="flex gap-1">
           <button className="btn btn-ghost !px-2 !py-1 text-xs" onClick={() => openEdit(r)}>Edit</button>
-          <button className="btn btn-ghost !px-2 !py-1 text-xs text-rose-300 hover:bg-rose-50" onClick={() => deleteProduct(r.id)}>Del</button>
+          <button className="btn btn-ghost !px-2 !py-1 text-xs text-rose-600 hover:bg-rose-50" onClick={() => deleteProduct(r.id)}>Del</button>
         </div>
       ) },
   ];
@@ -160,11 +160,11 @@ export default function ProductsScreen() {
           <Card title="Categories" subtitle="Products per category">
             <Table
               columns={[
-                { header: 'Category', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.icon} {r.name}</span> },
+                { header: 'Category', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.icon} {r.name}</span> },
                 { header: 'Products', key: 'count', className: 'text-right' },
                 { header: 'Revenue (wk)', key: 'revenue', className: 'text-right', render: (r) => formatPeso(r.revenue, { compact: true }) },
                 { header: 'Share', key: 'share', className: 'text-right', render: (r) => formatPercent(r.share, 0) },
-                { header: 'Best Seller', key: 'best', render: (r) => <span className="text-stone-200">{r.best?.name ?? '—'}</span> },
+                { header: 'Best Seller', key: 'best', render: (r) => <span className="text-stone-700">{r.best?.name ?? '—'}</span> },
               ]}
               rows={categoryRows}
               rowKey={(r) => r.id}
@@ -175,8 +175,8 @@ export default function ProductsScreen() {
               {catBreakdown.map((c) => (
                 <div key={c.category}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="text-stone-200">{c.category}</span>
-                    <span className="font-medium text-stone-100">{formatPercent(c.share, 0)}</span>
+                    <span className="text-stone-700">{c.category}</span>
+                    <span className="font-medium text-stone-800">{formatPercent(c.share, 0)}</span>
                   </div>
                   <ProgressBar value={c.share * 100} />
                 </div>
@@ -190,7 +190,7 @@ export default function ProductsScreen() {
         <Card title="Product Cost Breakdown" subtitle="Ingredient-level production cost per serving">
           <Table
             columns={[
-              { header: 'Product', key: 'product', render: (r) => <span className="font-medium text-stone-100">{r.product}</span> },
+              { header: 'Product', key: 'product', render: (r) => <span className="font-medium text-stone-800">{r.product}</span> },
               { header: 'Ingredient', key: 'ingredient' },
               { header: 'Qty / Serve', key: 'qty', className: 'text-right', render: (r) => `${r.qty} ${r.unit}` },
               { header: 'Unit Cost', key: 'unitCost', className: 'text-right', render: (r) => formatPeso(r.unitCost) },
@@ -207,10 +207,10 @@ export default function ProductsScreen() {
           <Card title="Product Profitability" subtitle="High-selling + high-profit are best products; high-selling + low-profit need pricing review">
             <Table
               columns={[
-                { header: 'Product', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
+                { header: 'Product', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
                 { header: 'Price', key: 'price', className: 'text-right', render: (r) => formatPeso(r.price) },
-                { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-300">{formatPeso(r.cost)}</span> },
-                { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-300">{formatPeso(r.profit)}</span> },
+                { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
+                { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
                 { header: 'Margin', key: 'margin', className: 'text-right', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
                 { header: 'Sold (wk)', key: 'sold', className: 'text-right' },
                 { header: 'Quadrant', key: 'quadrant', render: (r) => <Badge variant={r.quadrant.variant}>{r.quadrant.label}</Badge> },
@@ -220,10 +220,10 @@ export default function ProductsScreen() {
             />
           </Card>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Legend icon="⭐" label="Best" detail="High sales + high profit" tone="text-emerald-300" />
-            <Legend icon="⚠️" label="Review" detail="High sales, low profit" tone="text-amber-300" />
-            <Legend icon="📈" label="Market" detail="Low sales, high profit" tone="text-blue-300" />
-            <Legend icon="○" label="Watch" detail="Low sales + low profit" tone="text-stone-300" />
+            <Legend icon="⭐" label="Best" detail="High sales + high profit" tone="text-emerald-600" />
+            <Legend icon="⚠️" label="Review" detail="High sales, low profit" tone="text-amber-600" />
+            <Legend icon="📈" label="Market" detail="Low sales, high profit" tone="text-blue-600" />
+            <Legend icon="○" label="Watch" detail="Low sales + low profit" tone="text-stone-500" />
           </div>
         </div>
       )}
@@ -285,7 +285,7 @@ function Legend({ icon, label, detail, tone }: { icon: string; label: string; de
     <div className="card card-pad">
       <p className="text-lg">{icon}</p>
       <p className={`mt-1 text-sm font-semibold ${tone}`}>{label}</p>
-      <p className="text-xs text-stone-300">{detail}</p>
+      <p className="text-xs text-stone-500">{detail}</p>
     </div>
   );
 }

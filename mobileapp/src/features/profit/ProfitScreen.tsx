@@ -104,9 +104,9 @@ function Line({ label, value, bold, sub }: { label: string; value: number; bold?
     <View style={styles.row}>
       <View style={{ flex: 1 }}>
         <Text style={bold ? styles.bold : styles.lineLabel}>{label}</Text>
-        {sub ? <Text style={[styles.muted, { color: colors.goodOn }]}>{sub}</Text> : null}
+        {sub ? <Text style={[styles.muted, { color: colors.good }]}>{sub}</Text> : null}
       </View>
-      <Text style={[styles.bold, bold && { color: colors.goodOn }]}>{formatPeso(value)}</Text>
+      <Text style={[styles.bold, bold && { color: colors.good }]}>{formatPeso(value)}</Text>
     </View>
   );
 }

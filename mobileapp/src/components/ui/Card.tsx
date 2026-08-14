@@ -27,7 +27,7 @@ export default function Card({
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cardBorder, marginBottom: gap.lg },
-  head: { padding: gap.lg, paddingBottom: gap.md, borderBottomWidth: 1, borderBottomColor: 'rgba(253,246,236,0.12)' },
+  head: { padding: gap.lg, paddingBottom: gap.md, borderBottomWidth: 1, borderBottomColor: 'rgba(61,48,42,0.1)' },
   title: { fontSize: 15, fontWeight: '700', color: colors.onCard },
   subtitle: { marginTop: 2, fontSize: 12, color: colors.onCardSub },
   body: { padding: gap.lg },

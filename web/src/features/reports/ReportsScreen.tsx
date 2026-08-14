@@ -63,10 +63,10 @@ export default function ReportsScreen() {
   const profit = useMemo(() => getProfitSummary(transactions, products, expenses, month), [month, transactions, products]);
 
   const periodColumns: Column<PeriodRow>[] = [
-    { header: 'Period', key: 'period', render: (r) => <b className="text-stone-100">{r.period}</b> },
+    { header: 'Period', key: 'period', render: (r) => <b className="text-stone-800">{r.period}</b> },
     { header: 'Net Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
     { header: 'Transactions', key: 'transactions', className: 'text-right' },
-    { header: 'Net Profit', key: 'profit', className: 'text-right', render: (r) => <b className="text-emerald-300">{formatPeso(r.profit)}</b> },
+    { header: 'Net Profit', key: 'profit', className: 'text-right', render: (r) => <b className="text-emerald-600">{formatPeso(r.profit)}</b> },
   ];
 
   const dailyColumns: Column<(typeof dailyRows)[number]>[] = [
@@ -76,16 +76,16 @@ export default function ReportsScreen() {
   ];
 
   const staffColumns: Column<(typeof staffRows)[number]>[] = [
-    { header: 'Staff', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
+    { header: 'Staff', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
     { header: 'Transactions', key: 'transactions', className: 'text-right' },
     { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-300' : 'text-stone-300'}>{r.voids}</span> },
+    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
     { header: 'Discounts', key: 'discounts', className: 'text-right', render: (r) => formatPeso(r.discounts) },
   ];
 
   const stockColumns: Column<(typeof stockRows)[number]>[] = [
-    { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
+    { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Current', key: 'current', className: 'text-right', render: (r) => <b>{r.current} {r.unit}</b> },
     { header: 'Reorder Level', key: 'reorderLevel', className: 'text-right' },
     { header: 'Status', key: 'status', render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
@@ -113,9 +113,9 @@ export default function ReportsScreen() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Mini label="Total Items" value={formatNumber(invSummary.total)} />
-            <Mini label="Healthy" value={formatNumber(invSummary.healthy)} tone="text-emerald-300" />
-            <Mini label="Low" value={formatNumber(invSummary.low)} tone="text-amber-300" />
-            <Mini label="Critical" value={formatNumber(invSummary.critical)} tone="text-rose-300" />
+            <Mini label="Healthy" value={formatNumber(invSummary.healthy)} tone="text-emerald-600" />
+            <Mini label="Low" value={formatNumber(invSummary.low)} tone="text-amber-600" />
+            <Mini label="Critical" value={formatNumber(invSummary.critical)} tone="text-rose-600" />
           </div>
           <Card title="Current Inventory" subtitle="All stock items and their status">
             <Table columns={stockColumns} rows={stockRows} rowKey={(r) => r.itemId} />
@@ -146,7 +146,7 @@ export default function ReportsScreen() {
   );
 }
 
-function Mini({ label, value, tone = 'text-stone-50' }: { label: string; value: string; tone?: string }) {
+function Mini({ label, value, tone = 'text-stone-900' }: { label: string; value: string; tone?: string }) {
   return (
     <div className="card card-pad text-center">
       <p className="label">{label}</p>
@@ -159,10 +159,10 @@ function ProfitLine({ label, value, bold, sub }: { label: string; value: number;
   return (
     <div className="flex items-center justify-between">
       <div>
-        <p className={`text-sm ${bold ? 'font-semibold text-stone-50' : 'text-stone-200'}`}>{label}</p>
-        {sub && <p className="text-xs text-emerald-300">{sub}</p>}
+        <p className={`text-sm ${bold ? 'font-semibold text-stone-900' : 'text-stone-700'}`}>{label}</p>
+        {sub && <p className="text-xs text-emerald-600">{sub}</p>}
       </div>
-      <p className={`text-sm ${bold ? 'font-bold text-emerald-300' : 'font-medium text-stone-100'}`}>{formatPeso(value)}</p>
+      <p className={`text-sm ${bold ? 'font-bold text-emerald-600' : 'font-medium text-stone-800'}`}>{formatPeso(value)}</p>
     </div>
   );
 }

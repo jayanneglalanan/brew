@@ -23,10 +23,10 @@ export default function StatCard({ label, value, icon, delta, deltaLabel, accent
     <div className="card card-pad">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <p className="label label-on-card">{label}</p>
-          <p className="mt-1.5 truncate text-2xl font-bold text-stone-50">{value}</p>
+          <p className="label">{label}</p>
+          <p className="mt-1.5 truncate text-2xl font-bold text-stone-900">{value}</p>
           {delta !== undefined && (
-            <p className={`mt-1 text-xs font-medium ${delta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+            <p className={`mt-1 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {signed(delta)} {deltaLabel ?? 'vs prev period'}
             </p>
           )}

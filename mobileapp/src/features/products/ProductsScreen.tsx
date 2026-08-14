@@ -56,7 +56,7 @@ export default function ProductsScreen() {
         </View>
       ) },
     { header: 'Price', key: 'price', align: 'right', render: (r) => formatPeso(r.price) },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.goodOn, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> },
+    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> },
     { header: 'Status', key: 'status', render: (r) => (
         <Pressable onPress={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })}>
           <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge>
@@ -162,7 +162,7 @@ export default function ProductsScreen() {
           <Table
             columns={[
               { header: 'Product', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-              { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.goodOn, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+              { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
               { header: 'Margin', key: 'margin', align: 'right', render: (r) => formatPercent(margin(r.cost, r.price)) },
               { header: 'Sold (wk)', key: 'sold', align: 'right' },
             ]}
@@ -195,7 +195,7 @@ export default function ProductsScreen() {
             </View>
             {form.price > 0 ? (
               <Text style={styles.hint}>
-                Profit <Text style={{ color: colors.goodOn, fontWeight: '700' }}>{formatPeso(form.price - form.cost)}</Text> · Margin{' '}
+                Profit <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(form.price - form.cost)}</Text> · Margin{' '}
                 <Text style={{ fontWeight: '700' }}>{formatPercent(margin(form.cost, form.price))}</Text>
               </Text>
             ) : null}
@@ -241,5 +241,5 @@ const styles = StyleSheet.create({
   cancelText: { color: colors.sub, fontWeight: '700' },
   saveBtn: { backgroundColor: colors.brand },
   saveText: { color: '#fff', fontWeight: '700' },
-  deleteText: { color: colors.criticalOn, textAlign: 'center', marginTop: gap.md, fontWeight: '600', fontSize: 13 },
+  deleteText: { color: colors.critical, textAlign: 'center', marginTop: gap.md, fontWeight: '600', fontSize: 13 },
 });

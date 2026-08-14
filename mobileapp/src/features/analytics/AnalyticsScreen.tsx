@@ -54,7 +54,7 @@ export default function AnalyticsScreen() {
       ) },
     { header: 'Sold', key: 'sold', align: 'right' },
     { header: 'Revenue', key: 'revenue', align: 'right', render: (r) => formatPeso(r.revenue) },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.goodOn, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
   ];
 
   const peaksTop = [...peaks].sort((a, b) => b.sales - a.sales).slice(0, 4);
@@ -86,7 +86,7 @@ export default function AnalyticsScreen() {
               label={t.name}
               value={`${t.currentSales} sold`}
               pct={`${t.changePercent >= 0 ? '+' : ''}${Math.round(t.changePercent * 100)}%`}
-              color={t.changePercent >= 0 ? colors.goodOn : colors.criticalOn}
+              color={t.changePercent >= 0 ? colors.good : colors.critical}
             />
           ))}
         </Card>
@@ -99,7 +99,7 @@ export default function AnalyticsScreen() {
           </Card>
           <Card title="Top Peaks">
             {peaksTop.map((p, i) => (
-              <SparklineRow key={p.hour} label={`#${i + 1} · ${p.label}`} value={formatPeso(p.sales, { compact: true })} pct={`${p.transactions} orders`} color="#F0E2D6" />
+              <SparklineRow key={p.hour} label={`#${i + 1} · ${p.label}`} value={formatPeso(p.sales, { compact: true })} pct={`${p.transactions} orders`} color={colors.brand} />
             ))}
           </Card>
         </>
@@ -111,7 +111,7 @@ export default function AnalyticsScreen() {
             <Donut data={cat.map((c) => ({ name: c.category, value: c.sales }))} centerLabel="Cat" />
           </View>
           {cat.map((c) => (
-            <SparklineRow key={c.category} label={c.category} value={formatPercent(c.share, 0)} pct={formatPeso(c.sales, { compact: true })} color="#F0E2D6" />
+            <SparklineRow key={c.category} label={c.category} value={formatPercent(c.share, 0)} pct={formatPeso(c.sales, { compact: true })} color={colors.brand} />
           ))}
         </Card>
       )}

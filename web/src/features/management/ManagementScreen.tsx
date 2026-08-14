@@ -54,22 +54,22 @@ export default function ManagementScreen() {
           <span className="grid h-8 w-8 place-items-center rounded-full bg-stone-200 text-xs font-bold text-stone-700">
             {r.name.charAt(0)}
           </span>
-          <span className="font-medium text-stone-100">{r.name}</span>
+          <span className="font-medium text-stone-800">{r.name}</span>
         </div>
       ) },
     { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
     { header: 'Transactions', key: 'transactions', className: 'text-right' },
     { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-300' : 'text-stone-300'}>{r.voids}</span> },
+    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
     { header: 'Discounts', key: 'discounts', className: 'text-right', render: (r) => formatPeso(r.discounts) },
   ];
 
   const logColumns: Column<(typeof recentLogs)[number]>[] = [
-    { header: 'Time', key: 'timestamp', render: (r) => <span className="whitespace-nowrap text-stone-300">{formatDateTime(r.timestamp)}</span> },
-    { header: 'Actor', key: 'actor', render: (r) => <span className="font-medium text-stone-100">{staffName.get(r.actorId) ?? r.actorId}</span> },
+    { header: 'Time', key: 'timestamp', render: (r) => <span className="whitespace-nowrap text-stone-500">{formatDateTime(r.timestamp)}</span> },
+    { header: 'Actor', key: 'actor', render: (r) => <span className="font-medium text-stone-800">{staffName.get(r.actorId) ?? r.actorId}</span> },
     { header: 'Action', key: 'action', render: (r) => <Badge variant={ACTION_VARIANT[r.action] ?? 'slate'}>{ACTION_LABEL[r.action] ?? r.action}</Badge> },
-    { header: 'Target', key: 'target', render: (r) => <span className="text-stone-200">{r.target}</span> },
-    { header: 'Detail', key: 'detail', render: (r) => <span className="text-stone-300">{r.detail ?? '—'}</span> },
+    { header: 'Target', key: 'target', render: (r) => <span className="text-stone-700">{r.target}</span> },
+    { header: 'Detail', key: 'detail', render: (r) => <span className="text-stone-500">{r.detail ?? '—'}</span> },
   ];
 
   return (
@@ -89,8 +89,8 @@ export default function ManagementScreen() {
                     {s.name.charAt(0)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-stone-100">{s.name}</p>
-                    <p className="text-xs text-stone-300">{s.role}</p>
+                    <p className="truncate font-semibold text-stone-800">{s.name}</p>
+                    <p className="text-xs text-stone-500">{s.role}</p>
                   </div>
                   <Badge variant="slate">PIN ••••</Badge>
                 </div>
@@ -127,7 +127,7 @@ export default function ManagementScreen() {
             </div>
           </Card>
           <Card title="Demo Data" subtitle="Changes are saved to this browser">
-            <p className="mb-3 text-sm text-stone-300">
+            <p className="mb-3 text-sm text-stone-500">
               Products, inventory, transactions and audit logs survive page refreshes. Reset restores the original sample data.
             </p>
             <button
@@ -148,8 +148,8 @@ export default function ManagementScreen() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-stone-100 pb-2 text-sm">
-      <span className="text-stone-300">{label}</span>
-      <span className="font-medium text-stone-100">{value}</span>
+      <span className="text-stone-500">{label}</span>
+      <span className="font-medium text-stone-800">{value}</span>
     </div>
   );
 }

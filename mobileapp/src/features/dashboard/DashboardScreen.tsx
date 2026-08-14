@@ -72,7 +72,7 @@ export default function DashboardScreen() {
           </View>
           {inv.lowItems.slice(0, 4).map((it) => (
             <Text key={it.item} style={[styles.rowLabel, { marginTop: gap.sm }]}>
-              {it.item} · <Text style={{ color: it.level === 'critical' ? colors.criticalOn : colors.lowOn, fontWeight: '700' }}>{it.current} {it.unit}</Text>
+              {it.item} · <Text style={{ color: it.level === 'critical' ? colors.critical : colors.low, fontWeight: '700' }}>{it.current} {it.unit}</Text>
             </Text>
           ))}
         </Card>
@@ -87,7 +87,7 @@ export default function DashboardScreen() {
             ))}
           </View>
           <View style={[styles.half, styles.center]}>
-            <Donut data={pay.map((p) => ({ name: p.label, value: p.sales }))} centerLabel="Pay" colors={['#9CC0A0', '#F0E2D6', '#E3C285']} />
+            <Donut data={pay.map((p) => ({ name: p.label, value: p.sales }))} centerLabel="Pay" colors={['#9CC0A0', '#8B6F5A', '#E3C285']} />
             {pay.map((p) => (
               <SparklineRow key={p.method} label={p.label} value={formatPercent(p.share, 0)} pct="" />
             ))}
@@ -102,7 +102,7 @@ export default function DashboardScreen() {
             label={t.name}
             value={t.currentSales + ' sold'}
             pct={`${t.changePercent >= 0 ? '+' : ''}${Math.round(t.changePercent * 100)}%`}
-            color={t.changePercent >= 0 ? colors.goodOn : colors.criticalOn}
+            color={t.changePercent >= 0 ? colors.good : colors.critical}
           />
         ))}
       </Card>

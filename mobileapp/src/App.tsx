@@ -39,11 +39,11 @@ function Tabs() {
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },
-          headerTitleStyle: { fontWeight: '700', color: colors.ink },
-          headerTintColor: colors.brand,
+          headerTitleStyle: { fontWeight: '700', color: '#FDF6EC' },
+          headerTintColor: '#FDF6EC',
           headerRight: () => (
             <Pressable onPress={() => setMenuOpen(true)} hitSlop={12} style={{ marginRight: 12 }}>
-              <Text style={{ fontSize: 22, color: colors.ink }}>☰</Text>
+              <Text style={{ fontSize: 22, color: '#FDF6EC' }}>☰</Text>
             </Pressable>
           ),
         }}
@@ -64,12 +64,12 @@ export default function App() {
     <SafeAreaProvider>
       <DataProvider>
         <NavigationContainer>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <Stack.Navigator
             screenOptions={{
               headerStyle: { backgroundColor: colors.bg },
-              headerTitleStyle: { fontWeight: '700', color: colors.ink },
-              headerTintColor: colors.brand,
+              headerTitleStyle: { fontWeight: '700', color: '#FDF6EC' },
+              headerTintColor: '#FDF6EC',
               contentStyle: { backgroundColor: colors.bg },
             }}
           >

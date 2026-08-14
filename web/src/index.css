@@ -7,14 +7,14 @@
 }
 
 body {
-  background-color: #F0E2D6;
+  background-color: #A67C5B;
   @apply text-stone-900 antialiased;
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border shadow-sm bg-[#A67C5B];
-    border-color: rgba(61, 48, 42, 0.18);
+    @apply rounded-xl border shadow-sm bg-[#F0E2D6];
+    border-color: rgba(61, 48, 42, 0.14);
   }
   .card-pad {
     @apply p-5;
@@ -23,7 +23,7 @@ body {
     @apply text-xs font-medium uppercase tracking-wide text-stone-500;
   }
   .label-on-card {
-    color: #F0E2D6;
+    color: #8A7A70;
   }
   .btn {
     @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors;
@@ -38,7 +38,7 @@ body {
     @apply rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
   }
   .tbl th {
-    @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-stone-300;
+    @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-stone-500;
   }
   .tbl td {
     @apply px-4 py-2.5 text-sm;

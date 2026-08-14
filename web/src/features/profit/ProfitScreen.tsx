@@ -90,7 +90,7 @@ export default function ProfitScreen() {
           <IncomeRow label="Cost of Goods Sold (COGS)" value={profit.cogs} muted />
           <div className="border-t border-stone-100 pt-3">
             <IncomeRow label="Gross Profit" value={profit.grossProfit} bold />
-            <p className="text-right text-xs text-emerald-300">Gross margin {formatPercent(profit.grossMargin)}</p>
+            <p className="text-right text-xs text-emerald-600">Gross margin {formatPercent(profit.grossMargin)}</p>
           </div>
           <div className="border-t border-stone-100 pt-3">
             <IncomeRow label="Operating Expenses" value={profit.operatingExpenses} muted />
@@ -110,13 +110,13 @@ export default function ProfitScreen() {
             {expRows.map((r) => (
               <div key={r.cat}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-stone-200">{r.label}</span>
-                  <span className="font-medium text-stone-100">{formatPeso(r.amount, { compact: true })}</span>
+                  <span className="text-stone-700">{r.label}</span>
+                  <span className="font-medium text-stone-800">{formatPeso(r.amount, { compact: true })}</span>
                 </div>
                 <ProgressBar value={r.share * 100} color={CATEGORY_COLOR[r.cat]} />
               </div>
             ))}
-            {expRows.length === 0 && <p className="text-sm text-stone-300">No expenses in this period.</p>}
+            {expRows.length === 0 && <p className="text-sm text-stone-500">No expenses in this period.</p>}
           </div>
         </Card>
       </div>
@@ -124,10 +124,10 @@ export default function ProfitScreen() {
       <Card title="Expense Details" subtitle={range.label} className="mt-4">
         <Table<Expense>
           columns={[
-            { header: 'Expense', key: 'name', render: (r) => <span className="font-medium text-stone-100">{r.name}</span> },
+            { header: 'Expense', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
             { header: 'Category', key: 'category', render: (r) => <Badge variant="slate">{CATEGORY_LABEL[r.category] ?? r.category}</Badge> },
             { header: 'Amount', key: 'amount', className: 'text-right', render: (r) => <b>{formatPeso(r.amount)}</b> },
-            { header: 'Recurring', key: 'recurring', render: (r) => (r.recurring ? <Badge variant="blue">recurring</Badge> : <span className="text-stone-300">—</span>) },
+            { header: 'Recurring', key: 'recurring', render: (r) => (r.recurring ? <Badge variant="blue">recurring</Badge> : <span className="text-stone-500">—</span>) },
             { header: 'Date', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
           ]}
           rows={expenses.filter((e: Expense) => {
@@ -144,8 +144,8 @@ export default function ProfitScreen() {
 function IncomeRow({ label, value, muted, bold, accent }: { label: string; value: number; muted?: boolean; bold?: boolean; accent?: boolean }) {
   return (
     <div className="flex items-center justify-between py-1.5">
-      <span className={bold ? 'text-sm font-semibold text-stone-50' : 'text-sm text-stone-200'}>{label}</span>
-      <span className={`text-sm ${accent ? 'font-bold text-emerald-700' : bold ? 'font-semibold text-stone-50' : muted ? 'text-stone-300' : 'font-medium text-stone-100'}`}>
+      <span className={bold ? 'text-sm font-semibold text-stone-900' : 'text-sm text-stone-700'}>{label}</span>
+      <span className={`text-sm ${accent ? 'font-bold text-emerald-700' : bold ? 'font-semibold text-stone-900' : muted ? 'text-stone-500' : 'font-medium text-stone-800'}`}>
         {formatPeso(value)}
       </span>
     </div>

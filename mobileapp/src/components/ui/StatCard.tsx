@@ -34,7 +34,7 @@ export default function StatCard({
           <Text style={styles.label}>{label}</Text>
           <Text style={styles.value} numberOfLines={1}>{value}</Text>
           {delta !== undefined ? (
-            <Text style={[styles.delta, { color: delta >= 0 ? colors.goodOn : colors.criticalOn }]}>
+            <Text style={[styles.delta, { color: delta >= 0 ? colors.good : colors.critical }]}>
               {signed(delta)}
             </Text>
           ) : null}
@@ -50,7 +50,7 @@ export default function StatCard({
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cardBorder, padding: gap.lg },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cardBorder, padding: gap.lg, marginBottom: gap.lg },
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   textWrap: { flex: 1, minWidth: 0 },
   label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, color: colors.onCardSub },

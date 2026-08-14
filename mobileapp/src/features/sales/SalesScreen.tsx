@@ -143,7 +143,7 @@ export default function SalesScreen() {
       {tab === 'payments' && (
         <Card title="Payment Methods">
           <View style={styles.center}>
-            <Donut data={metrics.pay.map((p) => ({ name: p.label, value: p.sales }))} centerLabel="Pay" colors={['#9CC0A0', '#F0E2D6', '#E3C285']} />
+            <Donut data={metrics.pay.map((p) => ({ name: p.label, value: p.sales }))} centerLabel="Pay" colors={['#9CC0A0', '#8B6F5A', '#E3C285']} />
           </View>
           {metrics.pay.map((p) => (
             <Row key={p.method} label={p.label} value={`${formatPercent(p.share, 0)} · ${formatPeso(p.sales)}`} />

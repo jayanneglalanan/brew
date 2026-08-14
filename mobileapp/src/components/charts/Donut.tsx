@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { colors } from '../../theme';
 
-const DEFAULT_COLORS = ['#F0E2D6', '#9CC0A0', '#E3C285', '#D5A59E', '#C9A98F', '#FDF6EC', '#8FAF91'];
+const DEFAULT_COLORS = ['#8B6F5A', '#9CC0A0', '#E3C285', '#D5A59E', '#C9A98F', '#5C4033', '#8FAF91'];
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -37,7 +37,7 @@ export default function Donut({
   return (
     <View>
       <Svg width={size} height={size}>
-        <Path d={arcPath(cx, cy, r, 0, 360)} stroke="rgba(253,246,236,0.28)" strokeWidth={stroke} fill="none" />
+        <Path d={arcPath(cx, cy, r, 0, 360)} stroke="rgba(61,48,42,0.12)" strokeWidth={stroke} fill="none" />
         {total > 0
           ? data.map((d, i) => {
               const sweep = (d.value / total) * 360;

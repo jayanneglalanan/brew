@@ -42,16 +42,16 @@ export default function AnalyticsScreen() {
   const all = useMemo(() => getTopProducts(transactions, products, range, 'sales', 100), [range, transactions, products]);
 
   const topColumns: Column<(typeof top)[number]>[] = [
-    { header: 'Rank', key: 'rank', render: (_r, i) => <b className="text-stone-300">{i + 1}</b> },
+    { header: 'Rank', key: 'rank', render: (_r, i) => <b className="text-stone-500">{i + 1}</b> },
     { header: 'Product', key: 'name', render: (r) => (
         <div>
-          <span className="font-medium text-stone-100">{r.name}</span>
-          <span className="ml-2 text-xs text-stone-300">{r.category}</span>
+          <span className="font-medium text-stone-800">{r.name}</span>
+          <span className="ml-2 text-xs text-stone-500">{r.category}</span>
         </div>
       ) },
     { header: 'Sold', key: 'sold', className: 'text-right' },
     { header: 'Revenue', key: 'revenue', className: 'text-right', render: (r) => formatPeso(r.revenue) },
-    { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-300">{formatPeso(r.profit)}</span> },
+    { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
     { header: 'Avg Margin', key: 'margin', className: 'text-right', render: (r) => formatPercent(r.profit / r.revenue) },
   ];
 
@@ -82,16 +82,16 @@ export default function AnalyticsScreen() {
               const growth = Math.abs(t.changePercent) * 100;
               return (
                 <div key={t.productId} className="flex items-center gap-4">
-                  <span className="w-6 text-sm font-bold text-stone-300">{i + 1}</span>
+                  <span className="w-6 text-sm font-bold text-stone-500">{i + 1}</span>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="font-medium text-stone-100">{t.name}</span>
-                      <span className={t.changePercent >= 0 ? 'font-semibold text-emerald-300' : 'font-semibold text-rose-300'}>
+                      <span className="font-medium text-stone-800">{t.name}</span>
+                      <span className={t.changePercent >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-600'}>
                         {t.changePercent >= 0 ? '+' : ''}{Math.round(growth)}%
                       </span>
                     </div>
                     <ProgressBar value={Math.min(100, growth)} color={t.changePercent >= 0 ? 'bg-emerald-500' : 'bg-rose-500'} />
-                    <p className="mt-1 text-xs text-stone-300">
+                    <p className="mt-1 text-xs text-stone-500">
                       {t.currentSales} sold this period vs {t.previousSales} before
                     </p>
                   </div>
@@ -127,8 +127,8 @@ export default function AnalyticsScreen() {
               {cat.map((c) => (
                 <div key={c.category}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="text-stone-200">{c.category}</span>
-                    <span className="font-medium text-stone-100">{formatPeso(c.sales, { compact: true })} · {formatPercent(c.share, 0)}</span>
+                    <span className="text-stone-700">{c.category}</span>
+                    <span className="font-medium text-stone-800">{formatPeso(c.sales, { compact: true })} · {formatPercent(c.share, 0)}</span>
                   </div>
                   <ProgressBar value={c.share * 100} />
                 </div>

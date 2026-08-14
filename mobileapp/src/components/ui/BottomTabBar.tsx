@@ -5,8 +5,9 @@ import type { LucideIcon } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors } from '../../theme';
 
-const ACTIVE = colors.brand;
-const ACTIVE_SOFT = colors.brandSoft;
+const ACTIVE = colors.bg;
+const ACTIVE_ICON = '#FFFFFF';
+const ACTIVE_SOFT = colors.bg;
 const INACTIVE_ICON = '#8A7A70';
 const INACTIVE_LABEL = '#8A7A70';
 const SMALL_BREAKPOINT = 360;
@@ -56,7 +57,7 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
             >
               <View style={[styles.iconBox, { padding: size.boxPad }, isFocused && styles.iconBoxActive]}>
                 {tab?.icon ? (
-                  <tab.icon size={size.icon} color={isFocused ? ACTIVE : INACTIVE_ICON} strokeWidth={isFocused ? 2.2 : 2} />
+                  <tab.icon size={size.icon} color={isFocused ? ACTIVE_ICON : INACTIVE_ICON} strokeWidth={isFocused ? 2.2 : 2} />
                 ) : null}
               </View>
               <Text

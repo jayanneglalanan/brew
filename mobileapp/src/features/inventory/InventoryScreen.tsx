@@ -58,7 +58,7 @@ export default function InventoryScreen() {
   const itemCols: Column<(typeof statusRows)[number]>[] = [
     { header: 'Item', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
     { header: 'Stock', key: 'current', align: 'right', render: (r) => (
-        <Text style={[styles.bold, { color: r.status === 'critical' ? colors.criticalOn : r.status === 'low' ? colors.lowOn : colors.goodOn }]}>
+        <Text style={[styles.bold, { color: r.status === 'critical' ? colors.critical : r.status === 'low' ? colors.low : colors.good }]}>
           {r.current} {r.unit}
         </Text>
       ) },
@@ -68,16 +68,16 @@ export default function InventoryScreen() {
 
   const movementCols: Column<(typeof movement)[number]>[] = [
     { header: 'Item', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Purchases', key: 'purchases', align: 'right', render: (r) => <Text style={{ color: colors.goodOn }}>+{formatNumber(r.purchases)}</Text> },
+    { header: 'Purchases', key: 'purchases', align: 'right', render: (r) => <Text style={{ color: colors.good }}>+{formatNumber(r.purchases)}</Text> },
     { header: 'Sold', key: 'salesConsumption', align: 'right', render: (r) => `-${formatNumber(r.salesConsumption)}` },
-    { header: 'Waste', key: 'wastage', align: 'right', render: (r) => <Text style={{ color: colors.lowOn }}>-{formatNumber(r.wastage)}</Text> },
+    { header: 'Waste', key: 'wastage', align: 'right', render: (r) => <Text style={{ color: colors.low }}>-{formatNumber(r.wastage)}</Text> },
     { header: 'Current', key: 'currentStock', align: 'right', render: (r) => <Text style={styles.bold}>{r.currentStock} {r.unit}</Text> },
   ];
 
   const wasteCols: Column<(typeof wastage)[number]>[] = [
     { header: 'Item', key: 'item', render: (r) => <Text style={styles.bold}>{r.item}</Text> },
     { header: 'Type', key: 'type', render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{r.type}</Badge> },
-    { header: 'Qty', key: 'qty', align: 'right', render: (r) => <Text style={{ color: colors.criticalOn }}>-{r.qty} {r.unit}</Text> },
+    { header: 'Qty', key: 'qty', align: 'right', render: (r) => <Text style={{ color: colors.critical }}>-{r.qty} {r.unit}</Text> },
     { header: 'Date', key: 'timestamp', render: (r) => <Text style={styles.muted}>{formatDateTime(r.timestamp)}</Text> },
   ];
 

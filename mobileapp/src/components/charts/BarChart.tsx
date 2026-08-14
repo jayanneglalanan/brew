@@ -7,7 +7,7 @@ export default function BarChart({
   data,
   height = 180,
   barWidth = 26,
-  color = '#F0E2D6',
+  color = colors.brand,
 }: {
   data: Array<{ label: string; value: number }>;
   height?: number;
@@ -39,7 +39,7 @@ export default function BarChart({
   );
 }
 
-export function SparklineRow({ label, value, pct, color = colors.goodOn }: { label: string; value: string; pct: string; color?: string }) {
+export function SparklineRow({ label, value, pct, color = colors.good }: { label: string; value: string; pct: string; color?: string }) {
   return (
     <View style={styles.row}>
       <Text style={styles.label} numberOfLines={1}>{label}</Text>

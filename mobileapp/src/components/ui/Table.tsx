@@ -95,9 +95,9 @@ export default function Table<T>({
 const styles = StyleSheet.create({
   wrap: { overflow: 'hidden' },
 title: { fontSize: 12, fontWeight: '700', color: colors.onCardSub, marginBottom: gap.sm, textTransform: 'uppercase' },
-  headRow: { flexDirection: 'row', backgroundColor: 'rgba(253,246,236,0.1)', borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(253,246,236,0.14)' },
+  headRow: { flexDirection: 'row', backgroundColor: 'rgba(61,48,42,0.05)', borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(61,48,42,0.1)' },
   headCell: { paddingHorizontal: 12, paddingVertical: 10, fontSize: 11, lineHeight: 14, fontWeight: '700', color: colors.onCardSub, textTransform: 'uppercase', minWidth: 90 },
-  row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(253,246,236,0.14)' },
+  row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(61,48,42,0.1)' },
   last: { borderBottomWidth: 0 },
   cell: { paddingHorizontal: 12, paddingVertical: 10 },
   cellText: { fontSize: 13, lineHeight: 19, color: colors.onCard },

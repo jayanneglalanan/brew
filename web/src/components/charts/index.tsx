@@ -31,8 +31,8 @@ export function SalesChart({ data }: { data: Array<{ label: string; sales: numbe
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#E7DCCD" vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#E7DCCD' }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 12, fill: '#E7DCCD' }} axisLine={false} tickLine={false} width={46} />
+        <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#8A7A70' }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 12, fill: '#8A7A70' }} axisLine={false} tickLine={false} width={46} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />
         <Area type="monotone" dataKey="sales" name="Sales" stroke="#8B6F5A" strokeWidth={2.5} fill="url(#salesFill)" />
       </AreaChart>
@@ -45,8 +45,8 @@ export function PeakBar({ data }: { data: Array<{ label: string; sales: number }
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E7DCCD" vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#E7DCCD' }} axisLine={false} tickLine={false} interval={1} />
-        <YAxis tick={{ fontSize: 12, fill: '#E7DCCD' }} axisLine={false} tickLine={false} width={46} />
+        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8A7A70' }} axisLine={false} tickLine={false} interval={1} />
+        <YAxis tick={{ fontSize: 12, fill: '#8A7A70' }} axisLine={false} tickLine={false} width={46} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />
         <Bar dataKey="sales" name="Sales" fill="#8B6F5A" radius={[4, 4, 0, 0]} />
       </BarChart>

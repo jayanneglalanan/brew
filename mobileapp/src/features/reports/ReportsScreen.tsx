@@ -59,7 +59,7 @@ export default function ReportsScreen() {
     { header: 'Period', key: 'label', render: (r) => <Text style={styles.bold}>{r.label}</Text> },
     { header: 'Net Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
     { header: 'Tx', key: 'tx', align: 'right' },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.goodOn, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
   ];
   const dailyCols: Column<(typeof daily)[number]>[] = [
     { header: 'Date', key: 'label' },
@@ -75,7 +75,7 @@ export default function ReportsScreen() {
     { header: 'Staff', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
     { header: 'Tx', key: 'transactions', align: 'right' },
     { header: 'Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.criticalOn : colors.onCardSub }}>{r.voids}</Text> },
+    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
   ];
 
   return (
@@ -99,9 +99,9 @@ export default function ReportsScreen() {
         <>
           <View style={styles.grid}>
             <Mini label="Items" value={formatNumber(inv.total)} />
-            <Mini label="Healthy" value={formatNumber(inv.healthy)} tone={colors.goodOn} />
-            <Mini label="Low" value={formatNumber(inv.low)} tone={colors.lowOn} />
-            <Mini label="Critical" value={formatNumber(inv.critical)} tone={colors.criticalOn} />
+            <Mini label="Healthy" value={formatNumber(inv.healthy)} tone={colors.good} />
+            <Mini label="Low" value={formatNumber(inv.low)} tone={colors.low} />
+            <Mini label="Critical" value={formatNumber(inv.critical)} tone={colors.critical} />
           </View>
           <Card title="Current Inventory">
             <Table columns={stockCols} rows={stockRows} rowKey={(r) => r.itemId} />
@@ -143,9 +143,9 @@ function Line({ label, value, bold, sub }: { label: string; value: number; bold?
     <View style={styles.line}>
       <View style={{ flex: 1 }}>
         <Text style={bold ? styles.bold : styles.lineLabel}>{label}</Text>
-        {sub ? <Text style={[styles.muted, { color: colors.goodOn }]}>{sub}</Text> : null}
+        {sub ? <Text style={[styles.muted, { color: colors.good }]}>{sub}</Text> : null}
       </View>
-      <Text style={[styles.bold, bold && { color: colors.goodOn }]}>{formatPeso(value)}</Text>
+      <Text style={[styles.bold, bold && { color: colors.good }]}>{formatPeso(value)}</Text>
     </View>
   );
 }
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   miniValue: { marginTop: 4, fontSize: 22, fontWeight: '800' },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
   lineLabel: { fontSize: 14, color: colors.onCardSub },
-  divider: { borderTopWidth: 1, borderTopColor: 'rgba(253,246,236,0.12)', marginVertical: gap.sm },
+  divider: { borderTopWidth: 1, borderTopColor: 'rgba(61,48,42,0.1)', marginVertical: gap.sm },
   bold: { fontSize: 14, fontWeight: '700', color: colors.onCard },
   muted: { fontSize: 11 },
 });

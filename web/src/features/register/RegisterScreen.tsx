@@ -103,7 +103,7 @@ export default function RegisterScreen() {
         <div className="lg:sticky lg:top-0 lg:self-start">
           <Card title={`Current Order · ${cartItems.reduce((s, c) => s + c.qty, 0)} items`}>
             <div className="max-h-[46vh] space-y-2 overflow-y-auto pr-1">
-              {cartItems.length === 0 && <p className="py-8 text-center text-sm text-stone-300">Tap a product to add it.</p>}
+              {cartItems.length === 0 && <p className="py-8 text-center text-sm text-stone-500">Tap a product to add it.</p>}
               {cartItems.map((c) => (
                 <div key={c.product.id} className="flex items-center justify-between gap-2 rounded-lg bg-stone-50 px-3 py-2">
                   <div className="min-w-0">
@@ -122,13 +122,13 @@ export default function RegisterScreen() {
 
             <div className="mt-4 space-y-3 border-t border-stone-100 pt-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-stone-300">Subtotal</span>
+                <span className="text-stone-500">Subtotal</span>
                 <span className="font-medium">{formatPeso(subtotal)}</span>
               </div>
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-stone-300">Discount</span>
+                <span className="text-stone-500">Discount</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-stone-300">₱</span>
+                  <span className="text-stone-500">₱</span>
                   <input
                     type="number"
                     min={0}
@@ -139,7 +139,7 @@ export default function RegisterScreen() {
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-between text-base font-bold text-stone-50">
+              <div className="flex items-center justify-between text-base font-bold text-stone-900">
                 <span>Total</span>
                 <span>{formatPeso(total)}</span>
               </div>
@@ -170,7 +170,7 @@ export default function RegisterScreen() {
               </button>
             </div>
             {cartItems.length > 0 && (
-              <p className="mt-3 text-center text-xs text-stone-300">Records sale + stock usage · cashier Maria</p>
+              <p className="mt-3 text-center text-xs text-stone-500">Records sale + stock usage · cashier Maria</p>
             )}
           </Card>
           <div className="mt-3 flex flex-wrap gap-2">
