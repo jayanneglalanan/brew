@@ -16,7 +16,7 @@ export default function SegmentedTabs({
         const isActive = active === t.value;
         return (
           <Pressable key={t.value} onPress={() => onChange(t.value)} style={[styles.tab, isActive && styles.tabActive]}>
-            <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+            <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
               {t.label}
             </Text>
           </Pressable>
@@ -27,9 +27,8 @@ export default function SegmentedTabs({
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', gap: gap.xs, marginBottom: gap.lg },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: gap.xs, rowGap: 8, marginBottom: gap.lg },
   tab: {
-    flexShrink: 1,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: radius.md,
