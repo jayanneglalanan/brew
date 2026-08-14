@@ -9,13 +9,12 @@ interface ScreenProps extends ScrollViewProps {
   children: React.ReactNode;
 }
 
-export default function Screen({ title, subtitle, sticky, children, ...rest }: ScreenProps) {
+export default function Screen({ subtitle, sticky, children, ...rest }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} stickyHeaderIndices={[0]} {...rest}>
         <View style={styles.sticky}>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           </View>
           {sticky}
@@ -36,10 +35,7 @@ const styles = StyleSheet.create({
     paddingTop: gap.lg,
     paddingBottom: gap.xl,
     backgroundColor: colors.bg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
   },
   header: { marginBottom: gap.lg },
-  title: { fontSize: 24, fontWeight: '800', color: '#FDF6EC' },
   subtitle: { marginTop: 4, fontSize: 13, color: '#E6D2C0' },
 });
