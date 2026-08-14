@@ -20,6 +20,6 @@ export default function Badge({ children, variant = 'slate' }: { children: React
 }
 
 const styles = StyleSheet.create({
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm, borderWidth: 1, alignSelf: 'flex-start' },
-  text: { fontSize: 11, fontWeight: '700' },
+  badge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: radius.sm, borderWidth: 1, alignSelf: 'flex-start', maxWidth: '100%', flexShrink: 1 },
+  text: { fontSize: 10, fontWeight: '700', flexShrink: 1 },
 });

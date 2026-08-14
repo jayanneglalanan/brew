@@ -56,26 +56,26 @@ export default function ReportsScreen() {
   const staffRows = useMemo(() => getStaffPerformance(transactions, staff, month), [transactions, month]);
 
   const periodCols: Column<(typeof periodRows)[number]>[] = [
-    { header: 'Period', key: 'label', render: (r) => <Text style={styles.bold}>{r.label}</Text> },
-    { header: 'Net Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Tx', key: 'tx', align: 'right' },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Period', key: 'label', width: 1.2, lines: 2, render: (r) => <Text style={styles.bold}>{r.label}</Text> },
+    { header: 'Net Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
+    { header: 'Tx', key: 'tx', width: 0.8, lines: 1 },
+    { header: 'Profit', key: 'profit', width: 1.2, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
   ];
   const dailyCols: Column<(typeof daily)[number]>[] = [
-    { header: 'Date', key: 'label' },
-    { header: 'Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Tx', key: 'transactions', align: 'right' },
+    { header: 'Date', key: 'label', width: 1.2, lines: 1 },
+    { header: 'Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
+    { header: 'Tx', key: 'transactions', width: 0.8, lines: 1 },
   ];
   const stockCols: Column<(typeof stockRows)[number]>[] = [
-    { header: 'Item', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Stock', key: 'current', align: 'right', render: (r) => `${r.current} ${r.unit}` },
-    { header: 'Status', key: 'status', render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
+    { header: 'Item', key: 'name', width: 1.8, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
+    { header: 'Stock', key: 'current', width: 1.0, lines: 1, render: (r) => `${r.current} ${r.unit}` },
+    { header: 'Status', key: 'status', width: 1.1, lines: 1, render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
   ];
   const staffCols: Column<(typeof staffRows)[number]>[] = [
-    { header: 'Staff', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Tx', key: 'transactions', align: 'right' },
-    { header: 'Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
+    { header: 'Staff', key: 'name', width: 1.4, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
+    { header: 'Tx', key: 'transactions', width: 0.8, lines: 1 },
+    { header: 'Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
+    { header: 'Voids', key: 'voids', width: 0.9, lines: 1, render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
   ];
 
   return (

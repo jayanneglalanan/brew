@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, gap, radius } from '../../theme';
 
 export default function SegmentedTabs({
@@ -11,7 +11,7 @@ export default function SegmentedTabs({
   onChange: (value: string) => void;
 }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wrap}>
+    <View style={styles.wrap}>
       {tabs.map((t) => {
         const isActive = active === t.value;
         return (
@@ -20,17 +20,16 @@ export default function SegmentedTabs({
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: gap.lg },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: gap.xs, rowGap: 8, marginBottom: gap.lg },
   tab: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: radius.md,
-    marginRight: gap.xs,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: colors.line,

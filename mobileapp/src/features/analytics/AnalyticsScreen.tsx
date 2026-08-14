@@ -45,16 +45,16 @@ export default function AnalyticsScreen() {
   const cat = useMemo(() => getCategoryBreakdown(transactions, products, range), [transactions, products, range]);
 
   const topCols: Column<(typeof top)[number]>[] = [
-    { header: 'Rank', key: 'rank', render: (r) => <Text style={styles.rank}>{top.indexOf(r) + 1}</Text> },
-    { header: 'Product', key: 'name', render: (r) => (
+    { header: 'Rank', key: 'rank', width: 0.6, lines: 1, render: (r) => <Text style={styles.rank}>{top.indexOf(r) + 1}</Text> },
+    { header: 'Product', key: 'name', width: 2.0, lines: 2, render: (r) => (
         <View>
-          <Text style={styles.bold}>{r.name}</Text>
-          <Text style={styles.muted}>{r.category}</Text>
+          <Text style={styles.bold} numberOfLines={2}>{r.name}</Text>
+          <Text style={styles.muted} numberOfLines={1}>{r.category}</Text>
         </View>
       ) },
-    { header: 'Sold', key: 'sold', align: 'right' },
-    { header: 'Revenue', key: 'revenue', align: 'right', render: (r) => formatPeso(r.revenue) },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Sold', key: 'sold', width: 0.9, lines: 1 },
+    { header: 'Revenue', key: 'revenue', width: 1.2, lines: 1, render: (r) => formatPeso(r.revenue) },
+    { header: 'Profit', key: 'profit', width: 1.2, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
   ];
 
   const peaksTop = [...peaks].sort((a, b) => b.sales - a.sales).slice(0, 4);

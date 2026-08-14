@@ -49,20 +49,20 @@ export default function ProductsScreen() {
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   const productCols: Column<Product>[] = [
-    { header: 'Product', key: 'name', render: (r) => (
+    { header: 'Product', key: 'name', width: 1.7, lines: 2, render: (r) => (
         <View>
-          <Text style={styles.bold}>{r.name}</Text>
-          <Text style={styles.muted}>{r.category}</Text>
+          <Text style={styles.bold} numberOfLines={2}>{r.name}</Text>
+          <Text style={styles.muted} numberOfLines={1}>{r.category}</Text>
         </View>
       ) },
-    { header: 'Price', key: 'price', align: 'right', render: (r) => formatPeso(r.price) },
-    { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> },
-    { header: 'Status', key: 'status', render: (r) => (
+    { header: 'Price', key: 'price', width: 1.05, lines: 1, render: (r) => formatPeso(r.price) },
+    { header: 'Profit', key: 'profit', width: 1.05, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> },
+    { header: 'Status', key: 'status', width: 1.8, lines: 1, render: (r) => (
         <Pressable onPress={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })}>
           <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge>
         </Pressable>
       ) },
-    { header: '', key: 'edit', render: (r) => (
+    { header: '', key: 'edit', width: 0.7, lines: 1, render: (r) => (
         <Pressable onPress={() => openEdit(r)}>
           <Badge variant="brand">Edit</Badge>
         </Pressable>
@@ -147,9 +147,9 @@ export default function ProductsScreen() {
         <Card title="Product Cost Breakdown" subtitle="Ingredient cost per serving">
           <Table
             columns={[
-              { header: 'Product', key: 'product', render: (r) => <Text style={styles.bold}>{r.product}</Text> },
-              { header: 'Ingredient', key: 'ingredient', render: (r) => <Text style={styles.muted}>{r.ingredient}</Text> },
-              { header: 'Per Serve', key: 'qty', align: 'right', render: (r) => <Text style={styles.muted}>{r.qty}</Text> },
+              { header: 'Product', key: 'product', width: 1.6, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.product}</Text> },
+              { header: 'Ingredient', key: 'ingredient', width: 1.6, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{r.ingredient}</Text> },
+              { header: 'Per Serve', key: 'qty', width: 0.8, lines: 1, render: (r) => <Text style={styles.muted} numberOfLines={1}>{r.qty}</Text> },
             ]}
             rows={costRows}
             rowKey={(r) => r.id}
@@ -161,10 +161,10 @@ export default function ProductsScreen() {
         <Card title="Product Profitability" subtitle="⭐ Best · ⚠ Review · 📈 Market · ○ Watch">
           <Table
             columns={[
-              { header: 'Product', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-              { header: 'Profit', key: 'profit', align: 'right', render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
-              { header: 'Margin', key: 'margin', align: 'right', render: (r) => formatPercent(margin(r.cost, r.price)) },
-              { header: 'Sold (wk)', key: 'sold', align: 'right' },
+              { header: 'Product', key: 'name', width: 1.8, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
+              { header: 'Profit', key: 'profit', width: 1.0, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }} numberOfLines={1}>{formatPeso(r.profit)}</Text> },
+              { header: 'Margin', key: 'margin', width: 1.0, lines: 1, render: (r) => formatPercent(margin(r.cost, r.price)) },
+              { header: 'Sold (wk)', key: 'sold', width: 1.0, lines: 1 },
             ]}
             rows={profRows}
             rowKey={(r) => r.id}

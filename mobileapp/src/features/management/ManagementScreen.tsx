@@ -46,18 +46,18 @@ export default function ManagementScreen() {
   const logs = useMemo(() => [...auditLogs].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 40), [auditLogs]);
 
   const staffCols: Column<(typeof perf)[number]>[] = [
-    { header: 'Staff', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
-    { header: 'Tx', key: 'transactions', align: 'right' },
-    { header: 'Sales', key: 'sales', align: 'right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', align: 'right', render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
+    { header: 'Staff', key: 'name', width: 1.5, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
+    { header: 'Role', key: 'role', width: 1.0, lines: 1, render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
+    { header: 'Tx', key: 'transactions', width: 0.8, lines: 1 },
+    { header: 'Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
+    { header: 'Voids', key: 'voids', width: 0.9, lines: 1, render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
   ];
 
   const logCols: Column<(typeof logs)[number]>[] = [
-    { header: 'Time', key: 'timestamp', render: (r) => <Text style={styles.muted}>{formatDateTime(r.timestamp)}</Text> },
-    { header: 'Actor', key: 'actor', render: (r) => <Text style={styles.bold}>{nameById.get(r.actorId) ?? r.actorId}</Text> },
-    { header: 'Action', key: 'action', render: (r) => <Badge variant={ACTION_VARIANT[r.action] ?? 'slate'}>{ACTION_LABEL[r.action] ?? r.action}</Badge> },
-    { header: 'Target', key: 'target', render: (r) => <Text style={styles.muted}>{r.target}</Text> },
+    { header: 'Time', key: 'timestamp', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
+    { header: 'Actor', key: 'actor', width: 1.0, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{nameById.get(r.actorId) ?? r.actorId}</Text> },
+    { header: 'Action', key: 'action', width: 1.3, lines: 1, render: (r) => <Badge variant={ACTION_VARIANT[r.action] ?? 'slate'}>{ACTION_LABEL[r.action] ?? r.action}</Badge> },
+    { header: 'Target', key: 'target', width: 1.5, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{r.target}</Text> },
   ];
 
   return (

@@ -56,29 +56,29 @@ export default function InventoryScreen() {
   const filteredItems = statusRows.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
 
   const itemCols: Column<(typeof statusRows)[number]>[] = [
-    { header: 'Item', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Stock', key: 'current', align: 'right', render: (r) => (
-        <Text style={[styles.bold, { color: r.status === 'critical' ? colors.critical : r.status === 'low' ? colors.low : colors.good }]}>
+    { header: 'Item', key: 'name', width: 2.0, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
+    { header: 'Stock', key: 'current', width: 1.0, lines: 1, render: (r) => (
+        <Text style={[styles.bold, { color: r.status === 'critical' ? colors.critical : r.status === 'low' ? colors.low : colors.good }]} numberOfLines={1}>
           {r.current} {r.unit}
         </Text>
       ) },
-    { header: 'Reorder', key: 'reorderLevel', align: 'right' },
-    { header: 'Status', key: 'status', render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge> },
+    { header: 'Reorder', key: 'reorderLevel', width: 1.0, lines: 1 },
+    { header: 'Status', key: 'status', width: 1.2, lines: 1, render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge> },
   ];
 
   const movementCols: Column<(typeof movement)[number]>[] = [
-    { header: 'Item', key: 'name', render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Purchases', key: 'purchases', align: 'right', render: (r) => <Text style={{ color: colors.good }}>+{formatNumber(r.purchases)}</Text> },
-    { header: 'Sold', key: 'salesConsumption', align: 'right', render: (r) => `-${formatNumber(r.salesConsumption)}` },
-    { header: 'Waste', key: 'wastage', align: 'right', render: (r) => <Text style={{ color: colors.low }}>-{formatNumber(r.wastage)}</Text> },
-    { header: 'Current', key: 'currentStock', align: 'right', render: (r) => <Text style={styles.bold}>{r.currentStock} {r.unit}</Text> },
+    { header: 'Item', key: 'name', width: 1.3, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
+    { header: 'Purchases', key: 'purchases', width: 1.6, lines: 1, render: (r) => <Text style={{ color: colors.good }} numberOfLines={1}>+{formatNumber(r.purchases)}</Text> },
+    { header: 'Sold', key: 'salesConsumption', width: 0.9, lines: 1, render: (r) => `-${formatNumber(r.salesConsumption)}` },
+    { header: 'Waste', key: 'wastage', width: 1.0, lines: 1, render: (r) => <Text style={{ color: colors.low }} numberOfLines={1}>-{formatNumber(r.wastage)}</Text> },
+    { header: 'Current', key: 'currentStock', width: 1.3, lines: 1, render: (r) => <Text style={styles.bold} numberOfLines={1}>{r.currentStock} {r.unit}</Text> },
   ];
 
   const wasteCols: Column<(typeof wastage)[number]>[] = [
-    { header: 'Item', key: 'item', render: (r) => <Text style={styles.bold}>{r.item}</Text> },
-    { header: 'Type', key: 'type', render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{r.type}</Badge> },
-    { header: 'Qty', key: 'qty', align: 'right', render: (r) => <Text style={{ color: colors.critical }}>-{r.qty} {r.unit}</Text> },
-    { header: 'Date', key: 'timestamp', render: (r) => <Text style={styles.muted}>{formatDateTime(r.timestamp)}</Text> },
+    { header: 'Item', key: 'item', width: 1.6, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.item}</Text> },
+    { header: 'Type', key: 'type', width: 0.9, lines: 1, render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{r.type}</Badge> },
+    { header: 'Qty', key: 'qty', width: 0.9, lines: 1, render: (r) => <Text style={{ color: colors.critical }} numberOfLines={1}>-{r.qty} {r.unit}</Text> },
+    { header: 'Date', key: 'timestamp', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
   ];
 
   const saveMovement = () => {
