@@ -16,7 +16,9 @@ export default function SegmentedTabs({
         const isActive = active === t.value;
         return (
           <Pressable key={t.value} onPress={() => onChange(t.value)} style={[styles.tab, isActive && styles.tabActive]}>
-            <Text style={[styles.label, isActive && styles.labelActive]}>{t.label}</Text>
+            <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+              {t.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -25,16 +27,17 @@ export default function SegmentedTabs({
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: gap.xs, rowGap: 8, marginBottom: gap.lg },
+  wrap: { flexDirection: 'row', gap: gap.xs, marginBottom: gap.lg },
   tab: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    flexShrink: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: radius.md,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: colors.line,
   },
   tabActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  label: { fontSize: 13, fontWeight: '600', color: colors.sub },
+  label: { fontSize: 12, fontWeight: '600', color: colors.sub, textAlign: 'center' },
   labelActive: { color: '#fff' },
 });
