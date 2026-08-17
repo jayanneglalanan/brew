@@ -4,6 +4,17 @@
 
 :root {
   color-scheme: light;
+  --login-bg: #F8F3ED;
+  --login-surface: #FFFDF9;
+  --login-primary: #6F4E37;
+  --login-primary-dark: #493226;
+  --login-secondary: #B88A68;
+  --login-accent: #D9B99B;
+  --login-accent-soft: #E9D9C8;
+  --login-text: #32251F;
+  --login-text-sub: #8A7568;
+  --login-border: #D8C8BC;
+  --login-error: #B84A4A;
 }
 
 body {
@@ -15,8 +26,7 @@ body {
   .card {
     @apply rounded-xl border shadow-sm bg-[#F0E2D6];
     border-color: rgba(61, 48, 42, 0.14);
-  }
-  .card-pad {
+  }  .card-pad {
     @apply p-5;
   }
   .label {
@@ -37,10 +47,245 @@ body {
   .input {
     @apply rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
   }
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spinner {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
   .tbl th {
     @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-stone-500;
   }
   .tbl td {
     @apply px-4 py-2.5 text-sm;
+  }
+}
+
+.login-panel {
+  background: var(--login-surface);
+  border: 1px solid var(--login-border);
+  border-radius: 24px;
+  box-shadow: 0 24px 64px rgba(73, 50, 38, 0.10);
+}
+
+.login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 54px;
+  border-radius: 14px;
+  background: var(--login-primary);
+  color: var(--login-surface);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 12px 26px rgba(73, 50, 38, 0.22);
+}
+.login-btn:hover:not(:disabled) {
+  background: var(--login-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(73, 50, 38, 0.26);
+}
+.login-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.login-btn:disabled {
+  cursor: default;
+}
+
+.float-field {
+  position: relative;
+}
+.float-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 3.5rem;
+  border: 1px solid var(--login-border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--login-text);
+  font-size: 0.9375rem;
+  outline: none;
+  padding: 0 1rem 0 2.9rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.float-input::placeholder {
+  color: var(--login-text-sub);
+  opacity: 0.7;
+}
+.float-input:focus {
+  border-color: var(--login-primary);
+  box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.10);
+}
+.float-field .float-input-toggle {
+  padding-right: 3rem;
+}
+.float-field-error .float-input {
+  border-color: var(--login-error);
+}
+.float-field-error .float-lead,
+.float-field-error .float-label {
+  color: var(--login-error);
+}
+.float-lead {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--login-text-sub);
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.18s ease;
+}
+.float-label {
+  position: absolute;
+  left: 2.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--login-text-sub);
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.float-field input:focus ~ .float-label,
+.float-field input:not(:placeholder-shown) ~ .float-label {
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--login-surface);
+  padding: 0 7px;
+}
+.float-field input:not(:placeholder-shown) ~ .float-label {
+  color: var(--login-text-sub);
+}
+.float-field input:focus ~ .float-label {
+  color: var(--login-primary);
+}
+.float-field input:focus ~ .float-lead,
+.float-field input:not(:placeholder-shown) ~ .float-lead {
+  color: var(--login-text-sub);
+}
+.float-field input:focus ~ .float-lead {
+  color: var(--login-primary);
+}
+
+/* ---------- Split-screen login ---------- */
+.login-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.login-brand {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(720px 480px at 80% -10%, rgba(217, 185, 155, 0.28), transparent 60%),
+    radial-gradient(560px 420px at 0% 110%, rgba(73, 50, 38, 0.55), transparent 60%),
+    linear-gradient(160deg, var(--login-primary), var(--login-primary-dark));
+  color: var(--login-surface);
+  overflow: hidden;
+}
+
+.login-brand-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.login-brand-tile {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 26px;
+  background: rgba(255, 253, 249, 0.12);
+  border: 1px solid rgba(255, 253, 249, 0.28);
+  font-size: 42px;
+  box-shadow: 0 18px 40px rgba(26, 18, 14, 0.28);
+}
+
+.login-brand-name {
+  margin-top: 1.25rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.login-brand-tagline {
+  margin-top: 1.5rem;
+  font-size: 0.9375rem;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.login-form-col {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1.25rem;
+  background:
+    radial-gradient(900px 560px at 110% -20%, rgba(217, 185, 155, 0.22), transparent 60%),
+    var(--login-bg);
+}
+
+.login-mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--login-text);
+}
+
+.login-mobile-tile {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: var(--login-primary);
+  font-size: 20px;
+  color: var(--login-surface);
+}
+
+@media (max-width: 860px) {
+  .login-brand {
+    display: none;
+  }
+  .login-form-col {
+    width: 100%;
+  }
+  .login-mobile-brand {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-label,
+  .float-input,
+  .float-lead,
+  .login-btn {
+    transition: none;
   }
 }

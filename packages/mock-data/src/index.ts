@@ -34,3 +34,4 @@ export * from './lib/dates';
 export * from './lib/calculations';
 export * from './lib/analytics';
 export * from './lib/persistence';
+export * from './lib/roles';

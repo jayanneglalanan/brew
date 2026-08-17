@@ -22,11 +22,12 @@ import {
   type TransactionItem,
 } from 'mock-data';
 import { clearSnapshot, loadSnapshot, saveSnapshot } from './storage';
+import { useAuth } from './AuthContext';
 
 type MovementInput = {
   type: StockMovementEntry['type'];
   itemId: string;
-  qty: number;
+  qty: number | string;
   note?: string;
   timestamp?: string;
 };
@@ -52,6 +53,12 @@ interface DataValue {
   addProduct: (p: Omit<Product, 'id'>) => void;
   updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
+  addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
+  updateInventoryItem: (item: InventoryItem) => void;
+  deleteInventoryItem: (id: string) => void;
+  addCategory: (name: string, icon: string) => void;
+  updateCategory: (category: Category) => void;
+  deleteCategory: (id: string) => boolean;
   recordMovement: (input: MovementInput) => void;
   recordTransaction: (input: TransactionInput) => Transaction;
   logAudit: (action: AuditAction, target: string, actorId?: string, detail?: string) => void;
@@ -74,6 +81,7 @@ const initialInventory = hasSnapshot ? snapshot.inventory : seedInventory;
 const initialMovements = hasSnapshot ? snapshot.stockMovements : seedMovements;
 const initialTransactions = hasSnapshot ? snapshot.transactions : seedTransactions;
 const initialAuditLogs = hasSnapshot ? snapshot.auditLogs : seedAuditLogs;
+const initialCategories = hasSnapshot && snapshot.categories ? snapshot.categories : seedCategories;
 
 function maxNumericSuffix(ids: string[]): number {
   let max = 1000;
@@ -91,36 +99,47 @@ function maxOrderNumber(txs: Transaction[]): number {
   }, 1000);
 }
 
-let idCounter = maxNumericSuffix([...initialProducts, ...initialMovements, ...initialTransactions, ...initialAuditLogs].map((x) => x.id));
+let idCounter = maxNumericSuffix([
+  ...initialProducts,
+  ...initialMovements,
+  ...initialTransactions,
+  ...initialAuditLogs,
+  ...initialInventory,
+  ...initialCategories,
+].map((x) => x.id));
 let orderCounter = maxOrderNumber(initialTransactions);
 const nextId = (prefix: string) => `${prefix}-${++idCounter}`;
 const nextOrder = () => `KF-${++orderCounter}`;
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
   const [movements, setMovements] = useState<StockMovementEntry[]>(initialMovements);
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
 
   useEffect(() => {
     saveSnapshot({
-      version: 1,
+      version: 2,
       seedSignature: SEED_SIGNATURE,
       products,
       inventory,
       stockMovements: movements,
       transactions,
       auditLogs,
+      categories,
     });
-  }, [products, inventory, movements, transactions, auditLogs]);
+  }, [products, inventory, movements, transactions, auditLogs, categories]);
 
   const value = useMemo<DataValue>(() => {
-    const logAudit = (action: AuditAction, target: string, actorId = 'staff-001', detail?: string) => {
+    const actorId = user?.id ?? seedStaff[0].id;
+    const logAudit = (action: AuditAction, target: string, actorIdOverride?: string, detail?: string) => {
       const entry: AuditLog = {
         id: nextId('log'),
         timestamp: new Date().toISOString(),
-        actorId,
+        actorId: actorIdOverride ?? actorId,
         action,
         target,
         detail,
@@ -188,13 +207,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const resetData = () => {
       clearSnapshot();
-      idCounter = maxNumericSuffix([...seedProducts, ...seedMovements, ...seedTransactions, ...seedAuditLogs].map((x) => x.id));
+      idCounter = maxNumericSuffix([...seedProducts, ...seedMovements, ...seedTransactions, ...seedAuditLogs, ...seedInventory, ...seedCategories].map((x) => x.id));
       orderCounter = maxOrderNumber(seedTransactions);
       setProducts(seedProducts);
       setInventory(seedInventory);
       setMovements(seedMovements);
       setTransactions(seedTransactions);
       setAuditLogs(seedAuditLogs);
+      setCategories(seedCategories);
     };
 
     return {
@@ -202,7 +222,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       inventory,
       stockMovements: movements,
       transactions,
-      categories: seedCategories,
+      categories,
       staff: seedStaff,
       expenses: seedExpenses,
       auditLogs,
@@ -218,7 +238,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deleteProduct: (id) => {
         const target = products.find((p) => p.id === id)?.name ?? id;
         setProducts((prev) => prev.filter((x) => x.id !== id));
-        logAudit('product.updated', target, undefined, `deleted · ${id}`);
+        logAudit('product.deleted', target, undefined, `deleted · ${id}`);
+      },
+      addInventoryItem: (item) => {
+        const id = nextId('inv');
+        setInventory((prev) => [...prev, { ...item, id }]);
+        logAudit('inventory.created', item.name, undefined, id);
+      },
+      updateInventoryItem: (item) => {
+        setInventory((prev) => prev.map((x) => (x.id === item.id ? item : x)));
+        logAudit('inventory.updated', item.name, undefined, item.id);
+      },
+      deleteInventoryItem: (id) => {
+        const target = inventory.find((i) => i.id === id)?.name ?? id;
+        setInventory((prev) => prev.filter((x) => x.id !== id));
+        logAudit('inventory.deleted', target, undefined, `deleted · ${id}`);
+      },
+      addCategory: (name, icon) => {
+        const id = nextId('cat');
+        setCategories((prev) => [...prev, { id, name, icon: icon || '🏷️' }]);
+        logAudit('product.updated', name, undefined, `category created · ${id}`);
+      },
+      updateCategory: (category) => {
+        setCategories((prev) => prev.map((c) => (c.id === category.id ? category : c)));
+        logAudit('product.updated', category.name, undefined, `category updated · ${category.id}`);
+      },
+      deleteCategory: (id) => {
+        const inUse = products.some((p) => p.category === categories.find((c) => c.id === id)?.name);
+        if (inUse) return false;
+        setCategories((prev) => prev.filter((c) => c.id !== id));
+        logAudit('product.updated', id, undefined, 'category deleted');
+        return true;
       },
       recordMovement: ({ type, itemId, qty, note, timestamp }) => {
         const entry: StockMovementEntry = {
@@ -233,8 +283,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setInventory((prev) =>
           prev.map((item) => {
             if (item.id !== itemId) return item;
-            const delta =
-              type === 'purchase' ? Math.abs(qty) : type === 'adjustment' ? qty : -Math.abs(qty);
+            const n = typeof qty === 'number' ? Math.abs(qty) : Math.abs(parseFloat(String(qty)));
+            const amt = Number.isFinite(n) ? n : 0;
+            const delta = type === 'purchase' ? amt : type === 'adjustment' ? amt : -amt;
             return { ...item, currentStock: Math.max(0, item.currentStock + delta) };
           }),
         );
@@ -244,7 +295,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logAudit,
       resetData,
     };
-  }, [products, inventory, movements, transactions, auditLogs]);
+  }, [products, inventory, movements, transactions, auditLogs, categories, user]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

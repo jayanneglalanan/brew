@@ -23,9 +23,13 @@ const ACTION_LABEL: Record<string, string> = {
   'transaction.voided': 'voided a transaction',
   'transaction.refunded': 'refunded a transaction',
   'inventory.adjustment': 'adjusted inventory',
+  'inventory.created': 'created a stock item',
+  'inventory.updated': 'updated a stock item',
+  'inventory.deleted': 'deleted a stock item',
   'discount.applied': 'applied a discount',
   'product.created': 'created a product',
   'product.updated': 'updated a product',
+  'product.deleted': 'deleted a product',
   'staff.login': 'logged in',
 };
 
@@ -34,9 +38,13 @@ const ACTION_VARIANT: Record<string, string> = {
   'transaction.voided': 'amber',
   'transaction.refunded': 'critical',
   'inventory.adjustment': 'blue',
+  'inventory.created': 'good',
+  'inventory.updated': 'blue',
+  'inventory.deleted': 'critical',
   'discount.applied': 'slate',
   'product.created': 'good',
   'product.updated': 'blue',
+  'product.deleted': 'critical',
   'staff.login': 'slate',
 };
 
@@ -120,7 +128,6 @@ export default function ManagementScreen() {
           </Card>
           <Card title="Alert Thresholds">
             <div className="space-y-3">
-              <Field label="Low stock threshold" value="At or below reorder level" />
               <Field label="Critical stock threshold" value="At or below critical level" />
               <Field label="Large discount alert" value="Discounts over 15%" />
               <Field label="Unusual sales drop" value="Below 50% of 7-day average" />

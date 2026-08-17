@@ -13,9 +13,13 @@ export type AuditAction =
   | 'transaction.voided'
   | 'transaction.refunded'
   | 'inventory.adjustment'
+  | 'inventory.created'
+  | 'inventory.updated'
+  | 'inventory.deleted'
   | 'discount.applied'
   | 'product.created'
   | 'product.updated'
+  | 'product.deleted'
   | 'staff.login';
 
 export interface AuditLog {
@@ -25,4 +29,10 @@ export interface AuditLog {
   action: AuditAction;
   target: string;
   detail?: string;
+}
+
+export interface SessionUser {
+  id: string;
+  name: string;
+  role: StaffRole;
 }

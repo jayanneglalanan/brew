@@ -310,10 +310,12 @@ export function getStockMovement(
   for (const mv of movements.filter((m) => isInRange(m.timestamp, range))) {
     const row = rowById.get(mv.itemId);
     if (!row) continue;
-    if (mv.type === 'purchase') row.purchases += mv.qty;
-    else if (mv.type === 'wastage') row.wastage += mv.qty;
-    else if (mv.type === 'damaged') row.damaged += mv.qty;
-    else row.adjustments += mv.qty;
+    const n = typeof mv.qty === 'number' ? mv.qty : parseFloat(String(mv.qty));
+    if (!Number.isFinite(n)) continue;
+    if (mv.type === 'purchase') row.purchases += n;
+    else if (mv.type === 'wastage') row.wastage += n;
+    else if (mv.type === 'damaged') row.damaged += n;
+    else row.adjustments += n;
   }
   for (const t of completed(transactions.filter((x) => isInRange(x.timestamp, range)))) {
     for (const it of t.items) {

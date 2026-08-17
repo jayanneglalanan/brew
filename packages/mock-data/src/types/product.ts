@@ -5,7 +5,8 @@ export type CategoryName =
   | 'Pastries'
   | 'Desserts'
   | 'Snacks'
-  | 'Add-ons';
+  | 'Add-ons'
+  | (string & {});
 
 export interface Category {
   id: string;

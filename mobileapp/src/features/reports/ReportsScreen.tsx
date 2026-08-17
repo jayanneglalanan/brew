@@ -15,9 +15,11 @@ import {
   staff,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useRangeFilter } from '../../data/RangeFilterContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import Table, { type Column } from '../../components/ui/Table';
 import { colors, gap } from '../../theme';
@@ -32,6 +34,7 @@ const TABS = [
 export default function ReportsScreen() {
   const { products, inventory, transactions } = useData();
   const [tab, setTab] = useState('sales');
+  const { range } = useRangeFilter();
   const week = useMemo(() => getDateRange('week'), []);
   const month = useMemo(() => getDateRange('month'), []);
   const today = useMemo(() => getDateRange('today'), []);
@@ -49,11 +52,11 @@ export default function ReportsScreen() {
       }),
     [today, week, month, transactions, products],
   );
-  const daily = useMemo(() => getDailySalesShort(transactions, month), [transactions, month]);
+  const daily = useMemo(() => getDailySalesShort(transactions, range), [transactions, range]);
   const inv = useMemo(() => getInventorySummary(inventory), [inventory]);
   const stockRows = useMemo(() => getStockStatusRows(inventory), [inventory]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, month), [transactions, products, month]);
-  const staffRows = useMemo(() => getStaffPerformance(transactions, staff, month), [transactions, month]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
+  const staffRows = useMemo(() => getStaffPerformance(transactions, staff, range), [transactions, range]);
 
   const periodCols: Column<(typeof periodRows)[number]>[] = [
     { header: 'Period', key: 'label', width: 1.2, lines: 2, render: (r) => <Text style={styles.bold}>{r.label}</Text> },
@@ -82,14 +85,19 @@ export default function ReportsScreen() {
     <Screen
       title="Reports"
       subtitle="Consolidated business reports"
-      sticky={<SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />}
+      sticky={
+        <>
+          <RangeFilterDropdown />
+          <SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />
+        </>
+      }
     >
       {tab === 'sales' && (
         <>
           <Card title="Sales Summary" subtitle="Across periods">
             <Table columns={periodCols} rows={periodRows} rowKey={(r) => r.label} />
           </Card>
-          <Card title="Daily Sales" subtitle="This month">
+          <Card title="Daily Sales" subtitle={range.label}>
             <Table columns={dailyCols} rows={daily} rowKey={(r) => r.label} />
           </Card>
         </>
@@ -110,7 +118,7 @@ export default function ReportsScreen() {
       )}
 
       {tab === 'profit' && (
-        <Card title="Profit Report" subtitle={month.label}>
+        <Card title="Profit Report" subtitle={range.label}>
           <Line label="Revenue" value={profit.revenue} />
           <Line label="COGS" value={profit.cogs} />
           <Line label="Gross Profit" value={profit.grossProfit} sub={`Gross margin ${formatPercent(profit.grossMargin)}`} />
@@ -121,7 +129,7 @@ export default function ReportsScreen() {
       )}
 
       {tab === 'staff' && (
-        <Card title="Staff Performance" subtitle={month.label}>
+        <Card title="Staff Performance" subtitle={range.label}>
           <Table columns={staffCols} rows={staffRows} rowKey={(r) => r.staffId} />
         </Card>
       )}

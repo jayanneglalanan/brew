@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, useWindowDimensions, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChartNoAxesColumnIncreasing, FileChartColumn, HandCoins, Package, ShoppingCart } from 'lucide-react-native';
+import { ChartNoAxesColumnIncreasing, FileChartColumn, HandCoins, Package } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors } from '../../theme';
@@ -14,7 +14,6 @@ const SMALL_BREAKPOINT = 360;
 
 const TABS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: 'Dashboard', label: 'Dashboard', icon: ChartNoAxesColumnIncreasing },
-  { name: 'Register', label: 'Register', icon: ShoppingCart },
   { name: 'Sales', label: 'Sales', icon: HandCoins },
   { name: 'Inventory', label: 'Inventory', icon: Package },
   { name: 'Reports', label: 'Reports', icon: FileChartColumn },

@@ -26,15 +26,20 @@ const ACTION_LABEL: Record<string, string> = {
   'transaction.voided': 'voided transaction',
   'transaction.refunded': 'refunded transaction',
   'inventory.adjustment': 'adjusted inventory',
+  'inventory.created': 'created stock item',
+  'inventory.updated': 'updated stock item',
+  'inventory.deleted': 'deleted stock item',
   'discount.applied': 'applied discount',
   'product.created': 'created product',
   'product.updated': 'updated product',
+  'product.deleted': 'deleted product',
   'staff.login': 'logged in',
 };
 
 const ACTION_VARIANT: Record<string, string> = {
   'transaction.completed': 'good', 'transaction.voided': 'low', 'transaction.refunded': 'critical',
-  'inventory.adjustment': 'blue', 'discount.applied': 'slate', 'product.created': 'good', 'product.updated': 'blue', 'staff.login': 'slate',
+  'inventory.adjustment': 'blue', 'inventory.created': 'good', 'inventory.updated': 'blue', 'inventory.deleted': 'critical',
+  'discount.applied': 'slate', 'product.created': 'good', 'product.updated': 'blue', 'product.deleted': 'critical', 'staff.login': 'slate',
 };
 
 export default function ManagementScreen() {
@@ -102,7 +107,6 @@ export default function ManagementScreen() {
             <Setting label="Business Hours" value="7:00 AM – 9:00 PM" />
           </Card>
           <Card title="Alert Thresholds">
-            <Setting label="Low stock" value="At or below reorder level" />
             <Setting label="Critical stock" value="At or below critical level" />
             <Setting label="Large discount" value="Over 15%" />
             <Setting label="Sales drop alert" value="Below 50% of 7-day avg" />

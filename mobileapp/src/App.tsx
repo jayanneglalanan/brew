@@ -1,12 +1,14 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 import { colors } from './theme';
 import { DataProvider } from './data/DataContext';
+import { AuthProvider, useAuth } from './data/AuthContext';
+import { RangeFilterProvider } from './data/RangeFilterContext';
 import AppDrawer from './components/ui/AppDrawer';
 import BottomTabBar from './components/ui/BottomTabBar';
 
@@ -18,9 +20,10 @@ import ProductsScreen from './features/products/ProductsScreen';
 import AnalyticsScreen from './features/analytics/AnalyticsScreen';
 import ProfitScreen from './features/profit/ProfitScreen';
 import ManagementScreen from './features/management/ManagementScreen';
-import RegisterScreen from './features/register/RegisterScreen';
+import LoginScreen from './features/login/LoginScreen';
 
 export type RootStackParamList = {
+  Login: undefined;
   Main: undefined;
   Products: { initial?: string } | undefined;
   Analytics: { initial?: string } | undefined;
@@ -31,8 +34,46 @@ export type RootStackParamList = {
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function Tabs() {
+function ManagerHome() {
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ paddingTop: insets.top }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FDF6EC' }}>Inventory</Text>
+            <Pressable onPress={() => setMenuOpen(true)} hitSlop={12}>
+              <Text style={{ fontSize: 22, color: '#FDF6EC' }}>☰</Text>
+            </Pressable>
+          </View>
+        </View>
+        <InventoryScreen />
+      </View>
+      <AppDrawer open={menuOpen} onClose={() => setMenuOpen(false)} user={user} />
+    </>
+  );
+}
+
+function Tabs() {
+  const { user } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isManager = user?.role === 'manager';
+
+  if (isManager) {
+    return <ManagerHome />;
+  }
+
   return (
     <>
       <Tab.Navigator
@@ -49,38 +90,53 @@ function Tabs() {
         }}
       >
         <Tab.Screen name="Dashboard" component={DashboardScreen} />
-        <Tab.Screen name="Register" component={RegisterScreen} />
         <Tab.Screen name="Sales" component={SalesScreen} />
         <Tab.Screen name="Inventory" component={InventoryScreen} />
         <Tab.Screen name="Reports" component={ReportsScreen} />
       </Tab.Navigator>
-      <AppDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <AppDrawer open={menuOpen} onClose={() => setMenuOpen(false)} user={user} />
     </>
+  );
+}
+
+function Root() {
+  const { ready, authed } = useAuth();
+  if (!ready) {
+    return <View style={{ flex: 1, backgroundColor: '#FAF3EA' }} />;
+  }
+  return (
+    <NavigationContainer>
+      <StatusBar style="light" />
+      <Stack.Navigator
+        initialRouteName={authed ? 'Main' : 'Login'}
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.bg },
+          headerTitleStyle: { fontWeight: '700', color: '#FDF6EC' },
+          headerTintColor: '#FDF6EC',
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Main" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Products" component={ProductsScreen} options={{ title: 'Products & Menu' }} />
+        <Stack.Screen name="Analytics" component={AnalyticsScreen} options={{ title: 'Analytics' }} />
+        <Stack.Screen name="Profit" component={ProfitScreen} options={{ title: 'Profit & Expenses' }} />
+        <Stack.Screen name="Management" component={ManagementScreen} options={{ title: 'Management' }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <DataProvider>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <Stack.Navigator
-            screenOptions={{
-              headerStyle: { backgroundColor: colors.bg },
-              headerTitleStyle: { fontWeight: '700', color: '#FDF6EC' },
-              headerTintColor: '#FDF6EC',
-              contentStyle: { backgroundColor: colors.bg },
-            }}
-          >
-            <Stack.Screen name="Main" component={Tabs} options={{ headerShown: false }} />
-            <Stack.Screen name="Products" component={ProductsScreen} options={{ title: 'Products & Menu' }} />
-            <Stack.Screen name="Analytics" component={AnalyticsScreen} options={{ title: 'Analytics' }} />
-            <Stack.Screen name="Profit" component={ProfitScreen} options={{ title: 'Profit & Expenses' }} />
-            <Stack.Screen name="Management" component={ManagementScreen} options={{ title: 'Management' }} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </DataProvider>
+      <AuthProvider>
+        <DataProvider>
+          <RangeFilterProvider>
+            <Root />
+          </RangeFilterProvider>
+        </DataProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

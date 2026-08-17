@@ -4,16 +4,17 @@ import {
   formatPercent,
   formatPeso,
   getCategoryBreakdown,
-  getDateRange,
   getPeakHours,
   getTopProducts,
   getTrendingProducts,
   type TopProductsSort,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useRangeFilter } from '../../data/RangeFilterContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import Table, { type Column } from '../../components/ui/Table';
 import BarChart, { SparklineRow } from '../../components/charts/BarChart';
@@ -36,9 +37,9 @@ const SORTS: Array<{ value: TopProductsSort; label: string }> = [
 
 export default function AnalyticsScreen() {
   const { products, transactions } = useData();
+  const { range } = useRangeFilter();
   const [tab, setTab] = useState('topselling');
   const [sortBy, setSortBy] = useState<TopProductsSort>('sales');
-  const range = useMemo(() => getDateRange('month'), []);
   const top = useMemo(() => getTopProducts(transactions, products, range, sortBy, 15), [transactions, products, range, sortBy]);
   const trending = useMemo(() => getTrendingProducts(transactions, products, range, 8), [transactions, products, range]);
   const peaks = useMemo(() => getPeakHours(transactions, range), [transactions, range]);
@@ -62,8 +63,13 @@ export default function AnalyticsScreen() {
   return (
     <Screen
       title="Analytics"
-      subtitle="Performance insights · this month"
-      sticky={<SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />}
+      subtitle={`Performance insights · ${range.label.toLowerCase()}`}
+      sticky={
+        <>
+          <RangeFilterDropdown />
+          <SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />
+        </>
+      }
     >
       {tab === 'topselling' && (
         <Card title={SORTS.find((s) => s.value === sortBy)?.label} subtitle="Toggle ranking">
@@ -117,7 +123,7 @@ export default function AnalyticsScreen() {
       )}
 
       {tab === 'products' && (
-        <Card title="All Products" subtitle="Ranked by units sold this month">
+        <Card title="All Products" subtitle={`Ranked by units sold · ${range.label}`}>
           <Table columns={topCols} rows={top} rowKey={(r) => r.productId} />
         </Card>
       )}

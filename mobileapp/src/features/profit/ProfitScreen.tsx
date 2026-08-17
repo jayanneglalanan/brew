@@ -1,19 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   formatPercent,
   formatPeso,
-  getDateRange,
   getProfitSummary,
   expenses,
-  type RangeFilter,
   type ExpenseCategory,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useRangeFilter } from '../../data/RangeFilterContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
-import Badge from '../../components/ui/Badge';
+import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import { colors, gap } from '../../theme';
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -23,8 +22,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 export default function ProfitScreen() {
   const { products, transactions } = useData();
-  const [filter, setFilter] = useState<RangeFilter>('month');
-  const range = getDateRange(filter);
+  const { range } = useRangeFilter();
   const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
 
   const expByCat = useMemo(() => {
@@ -45,15 +43,7 @@ export default function ProfitScreen() {
     <Screen
       title="Profit & Expenses"
       subtitle={range.label}
-      sticky={
-        <View style={styles.filterRow}>
-          {(['week', 'month', 'all'] as RangeFilter[]).map((f) => (
-            <Badge key={f} variant={filter === f ? 'brand' : 'slate'}>
-              <Text onPress={() => setFilter(f)}>{f === 'week' ? 'This Week' : f === 'month' ? 'This Month' : 'All Time'}</Text>
-            </Badge>
-          ))}
-        </View>
-      }
+      sticky={<RangeFilterDropdown />}
     >
       <View style={styles.grid}>
         <StatCard label="Revenue" value={formatPeso(profit.revenue)} icon="💰" style={styles.half} />

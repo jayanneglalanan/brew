@@ -8,7 +8,6 @@ import {
   formatPeso,
   getCategoryBreakdown,
   getDailySalesShort,
-  getDateRange,
   getPaymentBreakdown,
   getProfitSummary,
   getSalesByRange,
@@ -16,13 +15,14 @@ import {
   transactionItemsCount,
   transactionNet,
   transactionSubtotal,
-  type RangeFilter,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useRangeFilter } from '../../data/RangeFilterContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import Table, { type Column } from '../../components/ui/Table';
 import BarChart from '../../components/charts/BarChart';
@@ -36,22 +36,14 @@ const TABS = [
   { value: 'voids', label: 'Voids & Refunds' },
 ];
 
-const FILTERS: Array<{ value: RangeFilter; label: string }> = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'all', label: 'All Time' },
-];
-
 const PAYMENT_LABEL: Record<string, string> = { cash: 'Cash', gcash: 'GCash', card: 'Card' };
 const PAYMENT_VARIANT: Record<string, string> = { cash: 'good', gcash: 'blue', card: 'low' };
 
 export default function SalesScreen() {
   const { products, transactions } = useData();
+  const { range } = useRangeFilter();
   const [tab, setTab] = useState('overview');
-  const [filter, setFilter] = useState<RangeFilter>('today');
   const [search, setSearch] = useState('');
-  const range = getDateRange(filter);
 
   const metrics = useMemo(() => ({
     sales: getSalesByRange(transactions, range),
@@ -86,13 +78,7 @@ export default function SalesScreen() {
       subtitle={range.label}
       sticky={
         <>
-          <View style={styles.filterRow}>
-            {FILTERS.map((f) => (
-              <Badge key={f.value} variant={filter === f.value ? 'brand' : 'slate'}>
-                <Text onPress={() => setFilter(f.value)}>{f.label}</Text>
-              </Badge>
-            ))}
-          </View>
+          <RangeFilterDropdown />
           <SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />
         </>
       }

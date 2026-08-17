@@ -15,7 +15,7 @@ function MobileShell() {
       >
         <iframe
           title="KapeFlow Mobile"
-          src="/mobile/index.html?v=3"
+          src="/mobile/index.html?v=4"
           className="h-full w-full border-0"
         />
       </div>

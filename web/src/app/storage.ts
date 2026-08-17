@@ -1,4 +1,4 @@
-import type { AuditLog, InventoryItem, Product, StockMovementEntry, Transaction } from 'mock-data';
+import type { AuditLog, Category, InventoryItem, Product, StockMovementEntry, Transaction } from 'mock-data';
 
 export interface DataSnapshot {
   version: number;
@@ -8,9 +8,11 @@ export interface DataSnapshot {
   stockMovements: StockMovementEntry[];
   transactions: Transaction[];
   auditLogs: AuditLog[];
+  categories: Category[];
 }
 
 const KEY = 'kapeflow.state.v1';
+const VERSION = 2;
 
 export function loadSnapshot(): DataSnapshot | null {
   if (typeof window === 'undefined') return null;
@@ -18,7 +20,7 @@ export function loadSnapshot(): DataSnapshot | null {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as DataSnapshot;
-    return parsed.version === 1 ? parsed : null;
+    return parsed.version === VERSION ? parsed : null;
   } catch {
     return null;
   }

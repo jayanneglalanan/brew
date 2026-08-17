@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatDateTime } from 'mock-data';
 import { useRangeFilter } from '@/app/RangeFilterContext';
+import { useAuth } from '@/app/AuthContext';
 
 const FILTERS = [
   { value: 'today', label: 'Today' },
@@ -20,6 +21,8 @@ const parseIso = (s: string) => {
 };
 
 export default function Topbar() {
+  const { user } = useAuth();
+  const isManager = user?.role === 'manager';
   const { filter, setFilter } = useRangeFilter();
   const today = new Date();
   const defaultStart = new Date(today.getTime() - 6 * 86400000);
@@ -42,6 +45,8 @@ export default function Topbar() {
         <span>{formatDateTime(new Date().toISOString())}</span>
       </div>
       <div className="flex items-center gap-2">
+        {!isManager && (
+          <>
         {filter === 'custom' && (
           <div className="flex items-center gap-1.5 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1">
             <input type="date" value={start} onChange={(e) => { setStart(e.target.value); applyCustom(e.target.value, end); }} className="input !px-2 !py-1 text-xs" />
@@ -65,6 +70,8 @@ export default function Topbar() {
             </button>
           ))}
         </div>
+          </>
+        )}
       </div>
     </header>
   );

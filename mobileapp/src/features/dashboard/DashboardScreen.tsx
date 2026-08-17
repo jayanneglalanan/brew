@@ -17,32 +17,34 @@ import {
   getTrendingProducts,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useRangeFilter } from '../../data/RangeFilterContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import BarChart, { SparklineRow } from '../../components/charts/BarChart';
 import Donut from '../../components/charts/Donut';
 import { colors, gap } from '../../theme';
 
 export default function DashboardScreen() {
   const { products, inventory, stockMovements, transactions } = useData();
+  const { range } = useRangeFilter();
   const now = useMemo(() => new Date(), []);
-  const today = useMemo(() => ({ start: (() => { const d = new Date(now); d.setHours(0, 0, 0, 0); return d; })(), end: now, label: 'Today' }), [now]);
   const week = useMemo(() => ({ start: new Date(now.getTime() - 6 * DAY_MS), end: now, label: 'Last 7 days' }), [now]);
 
-  const sales = useMemo(() => getSalesByRange(transactions, today), [transactions, today]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, today), [transactions, products, today]);
-  const top = useMemo(() => getTopProducts(transactions, products, today, 'sales', 5), [transactions, products, today]);
-  const trending = useMemo(() => getTrendingProducts(transactions, products, today, 5), [transactions, products, today]);
+  const sales = useMemo(() => getSalesByRange(transactions, range), [transactions, range]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
+  const top = useMemo(() => getTopProducts(transactions, products, range, 'sales', 5), [transactions, products, range]);
+  const trending = useMemo(() => getTrendingProducts(transactions, products, range, 5), [transactions, products, range]);
   const inv = useMemo(() => getInventorySummary(inventory), [inventory]);
-  const cat = useMemo(() => getCategoryBreakdown(transactions, products, today), [transactions, products, today]);
-  const pay = useMemo(() => getPaymentBreakdown(transactions, today), [transactions, today]);
-  const exceptions = useMemo(() => getExceptions(transactions, inventory, stockMovements, today), [transactions, inventory, stockMovements, today]);
+  const cat = useMemo(() => getCategoryBreakdown(transactions, products, range), [transactions, products, range]);
+  const pay = useMemo(() => getPaymentBreakdown(transactions, range), [transactions, range]);
+  const exceptions = useMemo(() => getExceptions(transactions, inventory, stockMovements, range), [transactions, inventory, stockMovements, range]);
   const daily = useMemo(() => getDailySales(transactions, products, week), [transactions, products, week]);
 
   return (
-    <Screen title="Dashboard" subtitle="How is the coffee shop doing today?">
+    <Screen title="Dashboard" subtitle={`How is the coffee shop doing ${range.label.toLowerCase()}?`} sticky={<RangeFilterDropdown />}>
       <View style={styles.grid}>
         <StatCard label="Net Sales" value={formatPeso(sales.netSales)} icon="💰" style={styles.half} />
         <StatCard label="Net Profit" value={formatPeso(profit.netProfit)} icon="📈" accent="green" style={styles.half} />
@@ -55,7 +57,7 @@ export default function DashboardScreen() {
       </Card>
 
       <View style={styles.grid}>
-        <Card title="Top Products" subtitle="Today" style={styles.half}>
+        <Card title="Top Products" subtitle={range.label} style={styles.half}>
           {top.map((p, i) => (
             <View key={p.productId} style={styles.row}>
               <Text style={styles.rank}>{i + 1}</Text>
@@ -78,7 +80,7 @@ export default function DashboardScreen() {
         </Card>
       </View>
 
-      <Card title="Category vs Payment Share" subtitle="Today">
+      <Card title="Category vs Payment Share" subtitle={range.label}>
         <View style={styles.grid}>
           <View style={[styles.half, styles.center]}>
             <Donut data={cat.map((c) => ({ name: c.category, value: c.sales }))} centerLabel="Cat" />

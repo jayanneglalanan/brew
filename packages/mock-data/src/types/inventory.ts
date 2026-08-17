@@ -9,13 +9,15 @@ export interface InventoryItem {
   criticalLevel: number;
   costPerUnit: number;
   category: string;
+  supplier?: string;
+  expirationDate?: string;
 }
 
 export interface StockMovementEntry {
   id: string;
   itemId: string;
   type: 'purchase' | 'sale' | 'wastage' | 'adjustment' | 'damaged';
-  qty: number;
+  qty: number | string;
   timestamp: string;
   note?: string;
 }

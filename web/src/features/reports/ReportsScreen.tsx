@@ -14,6 +14,7 @@ import {
   staff,
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
+import { useRangeFilter } from '@/app/RangeFilterContext';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Table, { type Column } from '@/components/ui/Table';
@@ -36,6 +37,7 @@ interface PeriodRow {
 export default function ReportsScreen() {
   const { products, transactions, inventory } = useData();
   const [tab, setTab] = useState('sales');
+  const { range } = useRangeFilter();
   const week = useMemo(() => getDateRange('week'), []);
   const month = useMemo(() => getDateRange('month'), []);
   const today = useMemo(() => getDateRange('today'), []);
@@ -56,11 +58,11 @@ export default function ReportsScreen() {
     [today, week, month, transactions, products],
   );
 
-  const dailyRows = useMemo(() => getDailySalesShort(transactions, month), [month, transactions]);
+  const dailyRows = useMemo(() => getDailySalesShort(transactions, range), [range, transactions]);
   const invSummary = useMemo(() => getInventorySummary(inventory), [inventory]);
   const stockRows = useMemo(() => getStockStatusRows(inventory), [inventory]);
-  const staffRows = useMemo(() => getStaffPerformance(transactions, staff, month), [month, transactions]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, month), [month, transactions, products]);
+  const staffRows = useMemo(() => getStaffPerformance(transactions, staff, range), [range, transactions]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, transactions, products]);
 
   const periodColumns: Column<PeriodRow>[] = [
     { header: 'Period', key: 'period', render: (r) => <b className="text-stone-800">{r.period}</b> },
@@ -87,7 +89,6 @@ export default function ReportsScreen() {
   const stockColumns: Column<(typeof stockRows)[number]>[] = [
     { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Current', key: 'current', className: 'text-right', render: (r) => <b>{r.current} {r.unit}</b> },
-    { header: 'Reorder Level', key: 'reorderLevel', className: 'text-right' },
     { header: 'Status', key: 'status', render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
   ];
 
@@ -103,7 +104,7 @@ export default function ReportsScreen() {
           <Card title="Sales Summary" subtitle="Net sales, volume and profit across periods">
             <Table columns={periodColumns} rows={periodRows} rowKey={(r) => r.period} />
           </Card>
-          <Card title="Daily Sales — This Month" subtitle="Month-to-date breakdown">
+          <Card title="Daily Sales" subtitle={range.label}>
             <Table columns={dailyColumns} rows={dailyRows} rowKey={(r) => r.label} />
           </Card>
         </div>
@@ -124,7 +125,7 @@ export default function ReportsScreen() {
       )}
 
       {tab === 'profit' && (
-        <Card title="Profit Report" subtitle={month.label}>
+        <Card title="Profit Report" subtitle={range.label}>
           <div className="max-w-lg space-y-3">
             <ProfitLine label="Revenue" value={profit.revenue} />
             <ProfitLine label="COGS" value={profit.cogs} />
@@ -138,7 +139,7 @@ export default function ReportsScreen() {
       )}
 
       {tab === 'staff' && (
-        <Card title="Staff Performance" subtitle={`Ranked by sales · ${month.label}`}>
+        <Card title="Staff Performance" subtitle={`Ranked by sales · ${range.label}`}>
           <Table columns={staffColumns} rows={staffRows} rowKey={(r) => r.staffId} />
         </Card>
       )}

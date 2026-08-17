@@ -10,18 +10,16 @@ import {
   getPaymentBreakdown,
   getProfitSummary,
   getSalesByRange,
-  getDateRange,
   staff,
   transactionNet,
   transactionSubtotal,
   transactionItemsCount,
-  type DateRange,
   type PaymentBreakdown,
-  type RangeFilter,
   type Staff,
   type Transaction,
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
+import { useRangeFilter } from '@/app/RangeFilterContext';
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
@@ -36,38 +34,15 @@ const TABS = [
   { value: 'voids', label: 'Voids & Refunds' },
 ];
 
-const FILTERS: Array<{ value: RangeFilter; label: string }> = [
-  { value: 'today', label: 'Today' },
-  { value: 'yesterday', label: 'Yesterday' },
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'custom', label: 'Custom Range' },
-  { value: 'all', label: 'All Time' },
-];
-
-function RangeSelect({ value, onChange }: { value: RangeFilter; onChange: (v: RangeFilter) => void }) {
-  return (
-    <select value={value} onChange={(e) => onChange(e.target.value as RangeFilter)} className="input">
-      {FILTERS.map((f) => (
-        <option key={f.value} value={f.value}>
-          {f.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
 const PAYMENT_LABEL: Record<string, string> = { cash: 'Cash', gcash: 'GCash', card: 'Card' };
 const PAYMENT_BADGE: Record<string, string> = { cash: 'green', gcash: 'blue', card: 'amber' };
 const STATUS_BADGE: Record<string, string> = { completed: 'good', voided: 'amber', refunded: 'critical' };
 
 export default function SalesScreen() {
   const { products, transactions } = useData();
+  const { range } = useRangeFilter();
   const [tab, setTab] = useState('overview');
-  const [filter, setFilter] = useState<RangeFilter>('today');
-  const [custom, setCustom] = useState<DateRange | undefined>(undefined);
   const [search, setSearch] = useState('');
-  const range = getDateRange(filter, custom);
 
   const metrics = useMemo(() => ({
     sales: getSalesByRange(transactions, range),
@@ -87,52 +62,11 @@ export default function SalesScreen() {
 
   const staffByName = new Map<string, string>(staff.map((s: Staff) => [s.id, s.name]));
 
-  const mkCustom = (start: Date, end: Date): DateRange => ({
-    start,
-    end,
-    label: `${start.toISOString().slice(0, 10)} → ${end.toISOString().slice(0, 10)}`,
-  });
-  const applyFilter = (f: RangeFilter, c?: DateRange) => {
-    if (f === 'custom' && c) setCustom(c);
-    if (f !== 'custom') setCustom(undefined);
-    setFilter(f);
-  };
-
   return (
     <div>
       <PageHeader
         title="Sales"
         subtitle="Revenue, transactions and payment analytics"
-        action={
-          <div className="flex items-center gap-2">
-            {filter === 'custom' && (
-              <div className="flex items-center gap-1.5 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1">
-                <input
-                  type="date"
-                  className="input !px-2 !py-1 text-xs"
-                  value={custom ? custom.start.toISOString().slice(0, 10) : ''}
-                  onChange={(e) => {
-                    const end = custom?.end ?? new Date();
-                    const start = new Date(e.target.value + 'T00:00:00');
-                    if (start <= end) applyFilter('custom', mkCustom(start, end));
-                  }}
-                />
-                <span className="text-xs text-stone-400">→</span>
-                <input
-                  type="date"
-                  className="input !px-2 !py-1 text-xs"
-                  value={custom ? custom.end.toISOString().slice(0, 10) : ''}
-                  onChange={(e) => {
-                    const start = custom?.start ?? new Date();
-                    const end = new Date(e.target.value + 'T00:00:00');
-                    if (start <= end) applyFilter('custom', mkCustom(start, end));
-                  }}
-                />
-              </div>
-            )}
-            <RangeSelect value={filter} onChange={(f) => applyFilter(f, custom)} />
-          </div>
-        }
       />
       <div className="mb-5">
         <Tabs tabs={TABS} active={tab} onChange={setTab} />

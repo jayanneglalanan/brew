@@ -1,17 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   formatDateTime,
   formatPercent,
   formatPeso,
-  getDateRange,
   getProfitSummary,
   getSalesByRange,
   expenses,
-  type RangeFilter,
   type ExpenseCategory,
   type Expense,
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
+import { useRangeFilter } from '@/app/RangeFilterContext';
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
@@ -41,8 +40,7 @@ const CATEGORY_COLOR: Record<string, string> = {
 
 export default function ProfitScreen() {
   const { products, transactions } = useData();
-  const [filter, setFilter] = useState<RangeFilter>('month');
-  const range = getDateRange(filter);
+  const { range } = useRangeFilter();
 
   const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, products, transactions]);
   const sales = useMemo(() => getSalesByRange(transactions, range), [range, transactions]);
@@ -68,13 +66,6 @@ export default function ProfitScreen() {
       <PageHeader
         title="Profit & Expenses"
         subtitle="Revenue minus the cost of goods sold and operating expenses"
-        action={
-          <select value={filter} onChange={(e) => setFilter(e.target.value as RangeFilter)} className="input">
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="all">All Time</option>
-          </select>
-        }
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
