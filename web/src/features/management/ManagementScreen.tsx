@@ -7,6 +7,8 @@ import {
   staff,
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
+import { useAuth } from '@/app/AuthContext';
+import { useShopName } from '@/app/ShopNameContext';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Table, { type Column } from '@/components/ui/Table';
@@ -50,11 +52,35 @@ const ACTION_VARIANT: Record<string, string> = {
 
 export default function ManagementScreen() {
   const { transactions, auditLogs, resetData } = useData();
+  const { user, updateUser } = useAuth();
+  const { shopName, setShopName, businessHours, setBusinessHours } = useShopName();
   const [tab, setTab] = useState('staff');
+  const [nameDraft, setNameDraft] = useState(user?.name ?? '');
+  const [shopNameDraft, setShopNameDraft] = useState(shopName);
+  const [businessHoursDraft, setBusinessHoursDraft] = useState(businessHours);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const range = useMemo(() => getDateRange('week'), []);
   const staffPerf = useMemo(() => getStaffPerformance(transactions, staff, range), [transactions, range]);
   const staffName = useMemo(() => new Map(staff.map((s) => [s.id, s.name])), []);
   const recentLogs = useMemo(() => [...auditLogs].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 60), [auditLogs]);
+
+  const saveProfile = () => {
+    setConfirmOpen(true);
+  };
+
+  const confirmSave = () => {
+    const nextName = nameDraft.trim();
+    const nextShopName = shopNameDraft.trim();
+    const nextBusinessHours = businessHoursDraft.trim();
+    updateUser(nextName);
+    setShopName(nextShopName);
+    setBusinessHours(nextBusinessHours);
+    setConfirmOpen(false);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+  };
 
   const staffColumns: Column<(typeof staffPerf)[number]>[] = [
     { header: 'Name', key: 'name', render: (r) => (
@@ -119,13 +145,72 @@ export default function ManagementScreen() {
 
       {tab === 'settings' && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card title="Shop Profile">
-            <div className="space-y-3">
-              <Field label="Shop Name" value="KapeFlow Coffee" />
-              <Field label="Currency" value="₱ Philippine Peso (PHP)" />
-              <Field label="Business Hours" value="7:00 AM – 9:00 PM" />
+          {user ? (
+            <div className="relative">
+              <Card title="Profile">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-stone-200 font-bold text-stone-700">
+                    {user.name.charAt(0)}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-stone-800">{user.name}</p>
+                    <p className="text-xs capitalize text-stone-500">{user.role}</p>
+                  </div>
+                </div>
+                <label className="block text-sm">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">Full Name</span>
+                  <input
+                    className="input w-full"
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
+                    placeholder="Enter your name"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">Shop Name</span>
+                  <input
+                    className="input w-full"
+                    value={shopNameDraft}
+                    onChange={(e) => setShopNameDraft(e.target.value)}
+                    placeholder="Enter shop name"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">Business Hours</span>
+                  <input
+                    className="input w-full"
+                    value={businessHoursDraft}
+                    onChange={(e) => setBusinessHoursDraft(e.target.value)}
+                    placeholder="e.g. 7:00 AM – 9:00 PM"
+                  />
+                </label>
+                <button
+                  className="btn btn-primary w-full"
+                  onClick={saveProfile}
+                  disabled={!nameDraft.trim() || !shopNameDraft.trim() || !businessHoursDraft.trim()}
+                >
+                  Save Profile
+                </button>
+              </div>
+            </Card>
+              {confirmOpen && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center" onClick={closeConfirm}>
+                  <div className="w-full max-w-[280px] rounded-xl border border-stone-200 bg-white p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                    <p className="mb-3 text-sm font-semibold text-stone-800">Save Profile</p>
+                    <div className="flex gap-2">
+                      <button className="btn flex-1 bg-stone-100 text-stone-700 hover:bg-stone-200" onClick={closeConfirm}>
+                        Cancel
+                      </button>
+                      <button className="btn btn-primary flex-1" onClick={confirmSave}>
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </Card>
+          ) : null}
           <Card title="Alert Thresholds">
             <div className="space-y-3">
               <Field label="Critical stock threshold" value="At or below critical level" />

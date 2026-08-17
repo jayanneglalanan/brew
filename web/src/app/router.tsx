@@ -4,6 +4,7 @@ import { canAccess, homePathForRole, type NavKey } from 'mock-data';
 import { RangeFilterProvider } from './RangeFilterContext';
 import { DataProvider } from './DataContext';
 import { AuthProvider, useAuth } from './AuthContext';
+import { ShopNameProvider } from './ShopNameContext';
 import Layout from '@/components/layout/Layout';
 import DashboardScreen from '@/features/dashboard/DashboardScreen';
 import SalesScreen from '@/features/sales/SalesScreen';
@@ -70,11 +71,13 @@ export default function App() {
       }}
     >
       <AuthProvider>
-        <RangeFilterProvider>
-          <DataProvider>
-            <Gate />
-          </DataProvider>
-        </RangeFilterProvider>
+        <ShopNameProvider>
+          <RangeFilterProvider>
+            <DataProvider>
+              <Gate />
+            </DataProvider>
+          </RangeFilterProvider>
+        </ShopNameProvider>
       </AuthProvider>
     </BrowserRouter>
   );

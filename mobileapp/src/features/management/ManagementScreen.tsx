@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatDateTime,
   formatPeso,
@@ -8,12 +8,15 @@ import {
   staff,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
+import { useAuth } from '../../data/AuthContext';
+import { useShopName } from '../../data/ShopNameContext';
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
+import FormField from '../../components/ui/FormField';
 import Table, { type Column } from '../../components/ui/Table';
-import { colors, gap } from '../../theme';
+import { colors, gap, radius } from '../../theme';
 
 const TABS = [
   { value: 'staff', label: 'Staff' },
@@ -44,11 +47,47 @@ const ACTION_VARIANT: Record<string, string> = {
 
 export default function ManagementScreen() {
   const { transactions, auditLogs, resetData } = useData();
+  const { user, updateUser } = useAuth();
+  const { shopName, setShopName, businessHours, setBusinessHours } = useShopName();
   const [tab, setTab] = useState('staff');
+  const [nameDraft, setNameDraft] = useState(user?.name ?? '');
+  const [shopNameDraft, setShopNameDraft] = useState(shopName);
+  const [businessHoursDraft, setBusinessHoursDraft] = useState(businessHours);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const range = useMemo(() => getDateRange('week'), []);
   const perf = useMemo(() => getStaffPerformance(transactions, staff, range), [transactions, range]);
   const nameById = useMemo(() => new Map(staff.map((s) => [s.id, s.name])), []);
   const logs = useMemo(() => [...auditLogs].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 40), [auditLogs]);
+
+  useEffect(() => {
+    setNameDraft(user?.name ?? '');
+  }, [user]);
+
+  useEffect(() => {
+    setShopNameDraft(shopName);
+  }, [shopName]);
+
+  useEffect(() => {
+    setBusinessHoursDraft(businessHours);
+  }, [businessHours]);
+
+  const saveProfile = () => {
+    setConfirmOpen(true);
+  };
+
+  const confirmSave = () => {
+    const nextName = nameDraft.trim();
+    const nextShopName = shopNameDraft.trim();
+    const nextBusinessHours = businessHoursDraft.trim();
+    const tasks = [updateUser(nextName), setShopName(nextShopName), setBusinessHours(nextBusinessHours)];
+    Promise.all(tasks).then(() => {
+      setConfirmOpen(false);
+    });
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+  };
 
   const staffCols: Column<(typeof perf)[number]>[] = [
     { header: 'Staff', key: 'name', width: 1.5, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
@@ -101,10 +140,26 @@ export default function ManagementScreen() {
 
       {tab === 'settings' && (
         <>
-          <Card title="Shop Profile">
-            <Setting label="Shop Name" value="KapeFlow Coffee" />
-            <Setting label="Currency" value="₱ Philippine Peso" />
-            <Setting label="Business Hours" value="7:00 AM – 9:00 PM" />
+          <Card title="Profile" style={styles.profileCard}>
+            {user ? (
+              <>
+                <View style={styles.row}>
+                  <View style={[styles.avatar, { backgroundColor: '#8B5E3C' }]}>
+                    <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.bold}>{user.name}</Text>
+                    <Text style={styles.muted}>{user.role}</Text>
+                  </View>
+                </View>
+                <FormField label="Full Name" value={nameDraft} onChangeText={setNameDraft} placeholder="Enter your name" autoCapitalize="words" />
+                <FormField label="Shop Name" value={shopNameDraft} onChangeText={setShopNameDraft} placeholder="Enter shop name" autoCapitalize="words" />
+                <FormField label="Business Hours" value={businessHoursDraft} onChangeText={setBusinessHoursDraft} placeholder="e.g. 7:00 AM – 9:00 PM" autoCapitalize="words" />
+                <Pressable style={styles.saveBtn} onPress={saveProfile} disabled={!nameDraft.trim() || !shopNameDraft.trim() || !businessHoursDraft.trim()}>
+                  <Text style={styles.saveText}>Save Profile</Text>
+                </Pressable>
+              </>
+            ) : null}
           </Card>
           <Card title="Alert Thresholds">
             <Setting label="Critical stock" value="At or below critical level" />
@@ -127,6 +182,22 @@ export default function ManagementScreen() {
           </Card>
         </>
       )}
+
+      <Modal visible={confirmOpen} animationType="fade" transparent onRequestClose={closeConfirm}>
+        <View style={styles.modalWrap}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>Save Profile</Text>
+            <View style={styles.modalActions}>
+              <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={closeConfirm}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={confirmSave}>
+                <Text style={styles.saveText}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -141,6 +212,7 @@ function Setting({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  profileCard: { width: '92%', alignSelf: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, gap: gap.sm },
   avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontWeight: '800' },
@@ -148,4 +220,13 @@ const styles = StyleSheet.create({
   muted: { fontSize: 12, color: colors.onCardSub },
   resetBtn: { marginTop: gap.md, borderWidth: 1, borderColor: '#E3C0BA', backgroundColor: '#F1DCD8', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   resetText: { fontSize: 13, fontWeight: '700', color: colors.critical },
+  saveBtn: { marginTop: gap.sm, backgroundColor: colors.brand, borderRadius: 10, paddingVertical: 12, alignItems: 'center', width: '100%' },
+  saveText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  modalWrap: { flex: 1, backgroundColor: 'rgba(61,48,42,0.4)', justifyContent: 'center', alignItems: 'center', padding: gap.lg },
+  modal: { backgroundColor: colors.card, borderRadius: radius.md, padding: gap.md, width: '78%', maxWidth: 300, alignSelf: 'center' },
+  modalTitle: { fontSize: 15, fontWeight: '800', color: colors.onCard, marginBottom: gap.sm },
+  modalActions: { flexDirection: 'row', gap: gap.sm },
+  modalBtn: { flex: 1, paddingVertical: 10, borderRadius: radius.md, alignItems: 'center' },
+  cancelBtn: { backgroundColor: '#F4EDE3' },
+  cancelText: { color: colors.sub, fontWeight: '700' },
 });

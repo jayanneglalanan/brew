@@ -9,6 +9,7 @@ import { colors } from './theme';
 import { DataProvider } from './data/DataContext';
 import { AuthProvider, useAuth } from './data/AuthContext';
 import { RangeFilterProvider } from './data/RangeFilterContext';
+import { ShopNameProvider } from './data/ShopNameContext';
 import AppDrawer from './components/ui/AppDrawer';
 import BottomTabBar from './components/ui/BottomTabBar';
 
@@ -133,7 +134,9 @@ export default function App() {
       <AuthProvider>
         <DataProvider>
           <RangeFilterProvider>
-            <Root />
+            <ShopNameProvider>
+              <Root />
+            </ShopNameProvider>
           </RangeFilterProvider>
         </DataProvider>
       </AuthProvider>

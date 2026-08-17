@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatDateTime } from 'mock-data';
 import { useRangeFilter } from '@/app/RangeFilterContext';
 import { useAuth } from '@/app/AuthContext';
+import { useShopName } from '@/app/ShopNameContext';
 
 const FILTERS = [
   { value: 'today', label: 'Today' },
@@ -22,6 +23,7 @@ const parseIso = (s: string) => {
 
 export default function Topbar() {
   const { user } = useAuth();
+  const { shopName } = useShopName();
   const isManager = user?.role === 'manager';
   const { filter, setFilter } = useRangeFilter();
   const today = new Date();
@@ -40,7 +42,7 @@ export default function Topbar() {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-stone-200 bg-white px-6">
       <div className="flex items-center gap-3 text-sm text-stone-500">
-        <span className="font-medium text-stone-900">☕ KapeFlow Admin</span>
+        <span className="font-medium text-stone-900">☕ {shopName}</span>
         <span className="text-stone-300">|</span>
         <span>{formatDateTime(new Date().toISOString())}</span>
       </div>

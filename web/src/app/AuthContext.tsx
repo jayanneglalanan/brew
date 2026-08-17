@@ -7,9 +7,10 @@ interface AuthCtx {
   user: SessionUser | null;
   login: (user: SessionUser) => void;
   logout: () => void;
+  updateUser: (name: string) => void;
 }
 
-const Ctx = createContext<AuthCtx>({ authed: false, user: null, login: () => {}, logout: () => {} });
+const Ctx = createContext<AuthCtx>({ authed: false, user: null, login: () => {}, logout: () => {}, updateUser: () => {} });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState(() => isAuthed());
@@ -27,7 +28,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthed(false);
   }, []);
 
-  return <Ctx.Provider value={{ authed, user, login, logout }}>{children}</Ctx.Provider>;
+  const updateUser = useCallback((name: string) => {
+    setUser((current) => {
+      if (!current) return current;
+      const next = { ...current, name: name.trim() || current.name };
+      persistLogin(next);
+      return next;
+    });
+  }, []);
+
+  return <Ctx.Provider value={{ authed, user, login, logout, updateUser }}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

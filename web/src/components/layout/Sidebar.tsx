@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { NavKey } from 'mock-data';
-import { navKeysForRole } from 'mock-data';
+import { navKeysForRole, roleLabel } from 'mock-data';
 import { useAuth } from '@/app/AuthContext';
+import { useShopName } from '@/app/ShopNameContext';
 
 interface NavItem {
   to: string;
@@ -36,6 +37,7 @@ const NAV: NavItem[] = [
 
 export default function Sidebar({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { shopName } = useShopName();
   const allowed = new Set(navKeysForRole(user?.role ?? 'owner'));
   const items = NAV.filter((item) => allowed.has(item.key));
 
@@ -43,8 +45,17 @@ export default function Sidebar({ children }: { children: ReactNode }) {
     <aside className="flex h-full w-60 flex-col border-r border-stone-200 bg-white">
       <div className="flex items-center gap-2.5 border-b border-stone-100 px-5 py-5">
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-xl text-white">☕</span>
-        <div>
-          <p className="text-base font-bold leading-tight text-stone-900">KapeFlow</p>
+        <div className="min-w-0">
+          <p className="truncate text-base font-bold leading-tight text-stone-900">{shopName}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2.5 border-b border-stone-100 px-5 py-3">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-stone-200 text-sm font-bold text-stone-700">
+          {user?.name.charAt(0) ?? '?'}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-stone-800">{user?.name ?? 'Guest'}</p>
+          <p className="text-xs text-stone-500">{user ? roleLabel(user.role) : '—'}</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

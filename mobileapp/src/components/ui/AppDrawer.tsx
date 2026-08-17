@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../../data/AuthContext';
+import { useShopName } from '../../data/ShopNameContext';
 import { colors, gap, radius } from '../../theme';
 import type { SessionUser } from 'mock-data';
 
@@ -26,13 +27,10 @@ const PANEL_WIDTH = Math.min(Dimensions.get('window').width * 0.78, 320);
 export default function AppDrawer({ open, onClose, user }: { open: boolean; onClose: () => void; user: SessionUser | null }) {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { logout } = useAuth();
+  const { shopName } = useShopName();
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
   const [visible, setVisible] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) setProfileOpen(false);
-  }, [open]);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -76,12 +74,24 @@ export default function AppDrawer({ open, onClose, user }: { open: boolean; onCl
               <Text style={styles.brandEmoji}>☕</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.brandName}>KapeFlow</Text>
+              <Text style={styles.brandName} numberOfLines={1}>{shopName}</Text>
             </View>
             <Pressable onPress={onClose} style={styles.closeBtn}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
           </View>
+
+          {user ? (
+            <View style={styles.userCard}>
+              <View style={styles.userAvatar}>
+                <Text style={styles.userAvatarText}>{user.name.charAt(0)}</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: gap.md }}>
+                <Text style={styles.userName}>{user.name}</Text>
+                <Text style={styles.userRole}>{user.role}</Text>
+              </View>
+            </View>
+          ) : null}
 
           <Text style={styles.sectionLabel}>Tools & Management</Text>
 
@@ -102,27 +112,24 @@ export default function AppDrawer({ open, onClose, user }: { open: boolean; onCl
 
           {user ? (
             <View style={styles.footer}>
-              {profileOpen ? (
-                <View style={styles.popover}>
-                  <Text style={styles.userName}>{user.name}</Text>
-                  <Text style={styles.userRole}>{user.role}</Text>
-                  <View style={styles.popoverDivider} />
-                  <Pressable style={styles.logout} onPress={handleLogout}>
-                    <Text style={styles.logoutIcon}>↪</Text>
-                    <Text style={styles.logoutLabel}>Log out</Text>
-                  </Pressable>
+              {logoutOpen ? (
+                <View style={styles.logoutConfirm}>
+                  <Text style={styles.logoutConfirmTitle}>Log out</Text>
+                  <View style={styles.logoutActions}>
+                    <Pressable style={[styles.logoutBtn, styles.cancelBtn]} onPress={() => setLogoutOpen(false)}>
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </Pressable>
+                    <Pressable style={[styles.logoutBtn, styles.logoutFill]} onPress={handleLogout}>
+                      <Text style={styles.logoutFillText}>Log out</Text>
+                    </Pressable>
+                  </View>
                 </View>
-              ) : null}
-              <Pressable style={styles.userCard} onPress={() => setProfileOpen((v) => !v)}>
-                <View style={styles.userAvatar}>
-                  <Text style={styles.userAvatarText}>{user.name.charAt(0)}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: gap.md }}>
-                  <Text style={styles.userName}>{user.name}</Text>
-                  <Text style={styles.userRole}>{user.role}</Text>
-                </View>
-                <Text style={styles.chevron}>‹</Text>
-              </Pressable>
+              ) : (
+                <Pressable style={styles.logout} onPress={() => setLogoutOpen(true)}>
+                  <Text style={styles.logoutIcon}>↪</Text>
+                  <Text style={styles.logoutLabel}>Log out</Text>
+                </Pressable>
+              )}
             </View>
           ) : null}
         </Animated.View>
@@ -158,25 +165,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(61,48,42,0.1)',
   },
-  userCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F1E8', borderRadius: radius.md, padding: gap.md },
-  popover: {
-    position: 'absolute',
-    bottom: '100%',
-    left: 0,
-    right: 0,
-    marginBottom: gap.sm,
-    backgroundColor: '#FFFFFF',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    padding: gap.sm,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  popoverDivider: { height: 1, backgroundColor: 'rgba(61,48,42,0.1)', marginTop: gap.sm },
+  userCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F1E8', borderRadius: radius.md, padding: gap.md, marginBottom: gap.lg },
   userAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
   userAvatarText: { fontSize: 15, fontWeight: '800', color: '#fff' },
   userName: { fontSize: 14, fontWeight: '800', color: colors.onCard },
@@ -189,11 +178,26 @@ const styles = StyleSheet.create({
   logout: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    marginTop: gap.sm,
-    paddingTop: gap.sm,
+    backgroundColor: colors.critical,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: gap.md,
   },
-  logoutIcon: { fontSize: 16, color: colors.critical },
-  logoutLabel: { fontSize: 14, fontWeight: '700', color: colors.critical },
+  logoutIcon: { fontSize: 16, color: '#fff' },
+  logoutLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  logoutConfirm: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: gap.md,
+  },
+  logoutConfirmTitle: { fontSize: 15, fontWeight: '800', color: colors.onCard, marginBottom: gap.sm },
+  logoutActions: { flexDirection: 'row', gap: gap.sm },
+  logoutBtn: { flex: 1, paddingVertical: 10, borderRadius: radius.md, alignItems: 'center' },
+  cancelBtn: { backgroundColor: '#F4EDE3' },
+  cancelText: { color: colors.sub, fontWeight: '700' },
+  logoutFill: { backgroundColor: colors.critical },
+  logoutFillText: { color: '#fff', fontWeight: '700' },
 });
