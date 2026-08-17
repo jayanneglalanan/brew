@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { History, PackagePlus } from 'lucide-react-native';
 import {
   formatDateTime,
   formatNumber,
@@ -17,6 +18,7 @@ import Card from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
+import Fab from '../../components/ui/Fab';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import FormField from '../../components/ui/FormField';
 import Table, { type Column } from '../../components/ui/Table';
@@ -192,21 +194,17 @@ export default function InventoryScreen() {
       subtitle={`${summary.total} items · ${formatPeso(summary.inventoryValue, { compact: true })} value`}
       sticky={
         <>
-          <View style={{ flexDirection: 'row', gap: gap.sm, marginBottom: gap.lg }}>
-            <Pressable style={[styles.addBtn, { flex: 1 }]} onPress={() => setModalOpen(true)}>
-              <Text style={styles.addBtnText}>+ Record Movement</Text>
-            </Pressable>
-            <Pressable style={[styles.addBtn, { flex: 1.1 }]} onPress={openItemAdd}>
-              <Text style={styles.addBtnText}>+ Add Stock Item</Text>
-            </Pressable>
-          </View>
+          {tab === 'wastage' && <RangeFilterDropdown />}
           <SegmentedTabs tabs={TABS} active={tab} onChange={setTab} />
-          {tab === 'wastage' && (
-            <View style={{ marginBottom: gap.md }}>
-              <RangeFilterDropdown />
-            </View>
-          )}
         </>
+      }
+      floating={
+        <Fab
+          options={[
+            { label: 'Record Movement', icon: History, onPress: () => setModalOpen(true) },
+            { label: 'Add Stock Item', icon: PackagePlus, onPress: openItemAdd },
+          ]}
+        />
       }
     >
       {tab === 'overview' && (
@@ -343,8 +341,6 @@ export default function InventoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  addBtn: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center' },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   half: { width: '48%' },
   bold: { fontSize: 13, fontWeight: '700', color: colors.onCard },

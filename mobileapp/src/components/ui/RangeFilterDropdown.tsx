@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { RangeFilter } from 'mock-data';
-import { colors, radius } from '../../theme';
+import { colors, gap, radius } from '../../theme';
 import { useRangeFilter } from '../../data/RangeFilterContext';
 
 const OPTIONS: Array<{ value: RangeFilter; label: string }> = [
@@ -50,7 +50,7 @@ export default function RangeFilterDropdown() {
 }
 
 const styles = StyleSheet.create({
-  container: { position: 'relative', alignSelf: 'flex-end', zIndex: 100 },
+  container: { position: 'relative', alignSelf: 'flex-end', zIndex: 100, marginBottom: gap.md },
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',

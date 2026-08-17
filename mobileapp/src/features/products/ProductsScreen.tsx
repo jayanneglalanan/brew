@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Coffee, FolderPlus } from 'lucide-react-native';
 import {
   formatPercent,
   formatPeso,
@@ -18,6 +19,7 @@ import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
+import Fab from '../../components/ui/Fab';
 import FormField from '../../components/ui/FormField';
 import Table, { type Column } from '../../components/ui/Table';
 import { colors, gap, radius } from '../../theme';
@@ -155,11 +157,16 @@ export default function ProductsScreen() {
       subtitle={`${products.length} items · ${categories.length} categories`}
       sticky={
         <>
-          <Pressable style={styles.addBtn} onPress={openAdd}>
-            <Text style={styles.addBtnText}>+ Add Product</Text>
-          </Pressable>
           <SegmentedTabs tabs={tabs} active={tab} onChange={setTab} />
         </>
+      }
+      floating={
+        <Fab
+          options={[
+            { label: 'Add Product', icon: Coffee, onPress: openAdd },
+            ...(tab === 'categories' ? [{ label: 'Add Category', icon: FolderPlus, onPress: openCategoryAdd }] : []),
+          ]}
+        />
       }
     >
       {tab === 'products' && (
@@ -171,9 +178,6 @@ export default function ProductsScreen() {
 
       {tab === 'categories' && (
         <>
-          <Pressable style={styles.addBtn} onPress={openCategoryAdd}>
-            <Text style={styles.addBtnText}>+ Add Category</Text>
-          </Pressable>
           <Card title="Categories" subtitle="Revenue share this week">
             {categories.map((c) => {
               const count = products.filter((p) => p.category === c.name).length;
@@ -328,8 +332,6 @@ export default function ProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  addBtn: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center', marginBottom: gap.lg },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, gap: gap.sm },
   bold: { fontSize: 13, fontWeight: '700', color: colors.onCard },
   muted: { fontSize: 12, color: colors.onCardSub },

@@ -6,10 +6,11 @@ interface ScreenProps extends ScrollViewProps {
   title: string;
   subtitle?: string;
   sticky?: React.ReactNode;
+  floating?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export default function Screen({ subtitle, sticky, children, ...rest }: ScreenProps) {
+export default function Screen({ subtitle, sticky, floating, children, ...rest }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} stickyHeaderIndices={[0]} {...rest}>
@@ -21,6 +22,7 @@ export default function Screen({ subtitle, sticky, children, ...rest }: ScreenPr
         </View>
         {children}
       </ScrollView>
+      {floating}
     </SafeAreaView>
   );
 }
@@ -28,7 +30,7 @@ export default function Screen({ subtitle, sticky, children, ...rest }: ScreenPr
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: gap.lg, paddingBottom: 40 },
+  content: { paddingHorizontal: gap.lg, paddingBottom: 96 },
   sticky: {
     marginHorizontal: -gap.lg,
     paddingHorizontal: gap.lg,
