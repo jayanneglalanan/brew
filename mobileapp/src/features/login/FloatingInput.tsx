@@ -86,6 +86,7 @@ export default function FloatingInput({
             autoCapitalize={autoCapitalize}
             autoCorrect={false}
             keyboardType={keyboardType}
+            caretHidden
           />
           {toggle ? (
             <Pressable

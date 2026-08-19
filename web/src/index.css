@@ -237,6 +237,7 @@ body {
   font-size: 0.9375rem;
   outline: none;
   padding: 0 1rem 0 2.9rem;
+  caret-color: transparent;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .float-input::placeholder {
