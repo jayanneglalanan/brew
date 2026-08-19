@@ -142,8 +142,8 @@ export default function SalesScreen() {
             <Table<PaymentBreakdown>
               columns={[
                 { header: 'Method', key: 'label', render: (r) => <Badge variant={PAYMENT_BADGE[r.method]}>{r.label}</Badge> },
-                { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-                { header: 'Share', key: 'share', className: 'text-right', render: (r) => formatPercent(r.share) },
+                { header: 'Sales', key: 'sales', render: (r) => formatPeso(r.sales) },
+                { header: 'Share', key: 'share', render: (r) => formatPercent(r.share) },
               ]}
               rows={metrics.pay}
               rowKey={(r) => r.method}
@@ -196,10 +196,10 @@ function TransactionsTable({ rows, staffByName }: { rows: Transaction[]; staffBy
     { header: 'Order #', key: 'orderNumber', render: (r) => <span className="font-medium text-stone-800">{r.orderNumber}</span> },
     { header: 'Time', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
     { header: 'Cashier', key: 'cashierName' },
-    { header: 'Items', key: 'itemsCount', className: 'text-right' },
+    { header: 'Items', key: 'itemsCount' },
     { header: 'Payment', key: 'paymentMethod', render: (r) => <Badge variant={PAYMENT_BADGE[r.paymentMethod]}>{PAYMENT_LABEL[r.paymentMethod]}</Badge> },
-    { header: 'Discount', key: 'discount', className: 'text-right', render: (r) => (r.discount > 0 ? `-${formatPeso(r.discount)}` : '—') },
-    { header: 'Total', key: 'total', className: 'text-right', render: (r) => <span className="font-semibold">{formatPeso(r.total)}</span> },
+    { header: 'Discount', key: 'discount', render: (r) => (r.discount > 0 ? `-${formatPeso(r.discount)}` : '—') },
+    { header: 'Total', key: 'total', render: (r) => <span className="font-semibold">{formatPeso(r.total)}</span> },
     { header: 'Status', key: 'status', render: (r) => <Badge variant={STATUS_BADGE[r.status]}>{r.status}</Badge> },
   ];
   return <Table columns={columns} rows={data} rowKey={(r) => r.orderNumber} />;

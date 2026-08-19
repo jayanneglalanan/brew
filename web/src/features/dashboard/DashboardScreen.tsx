@@ -108,14 +108,14 @@ export default function DashboardScreen() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card title="Top Selling Products" subtitle="Ranked by units sold" className="lg:col-span-2">
-          <table className="tbl w-full">
+          <table className="tbl w-full table-fixed">
             <thead>
               <tr className="border-b border-stone-200">
                 <th>#</th>
                 <th>Product</th>
-                <th className="text-right">Sold</th>
-                <th className="text-right">Revenue</th>
-                <th className="text-right">Profit</th>
+                <th>Sold</th>
+                <th>Revenue</th>
+                <th>Profit</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -126,9 +126,9 @@ export default function DashboardScreen() {
                     <span className="font-medium text-stone-800">{p.name}</span>
                     <span className="ml-2 text-xs text-stone-500">{p.category}</span>
                   </td>
-                  <td className="text-right font-medium">{p.sold}</td>
-                  <td className="text-right">{formatPeso(p.revenue)}</td>
-                  <td className="text-right text-emerald-600">{formatPeso(p.profit)}</td>
+                  <td className="font-medium">{p.sold}</td>
+                  <td>{formatPeso(p.revenue)}</td>
+                  <td className="text-emerald-600">{formatPeso(p.profit)}</td>
                 </tr>
               ))}
             </tbody>

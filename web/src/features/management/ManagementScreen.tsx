@@ -65,10 +65,10 @@ export default function ManagementScreen() {
         </div>
       ) },
     { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
-    { header: 'Transactions', key: 'transactions', className: 'text-right' },
-    { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
-    { header: 'Discounts', key: 'discounts', className: 'text-right', render: (r) => formatPeso(r.discounts) },
+    { header: 'Transactions', key: 'transactions' },
+    { header: 'Sales', key: 'sales', render: (r) => formatPeso(r.sales) },
+    { header: 'Voids', key: 'voids', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
+    { header: 'Discounts', key: 'discounts', render: (r) => formatPeso(r.discounts) },
   ];
 
   const logColumns: Column<(typeof recentLogs)[number]>[] = [

@@ -47,15 +47,16 @@ export default function AnalyticsScreen() {
 
   const topCols: Column<(typeof top)[number]>[] = [
     { header: 'Rank', key: 'rank', width: 0.6, lines: 1, render: (r) => <Text style={styles.rank}>{top.indexOf(r) + 1}</Text> },
-    { header: 'Product', key: 'name', width: 2.0, lines: 2, render: (r) => (
+    { header: 'Product', key: 'name', width: 1.8, lines: 2, render: (r) => (
         <View>
-          <Text style={styles.bold} numberOfLines={2}>{r.name}</Text>
-          <Text style={styles.muted} numberOfLines={1}>{r.category}</Text>
+          <Text style={[styles.bold, styles.textCenter]} numberOfLines={2}>{r.name}</Text>
+          <Text style={[styles.muted, styles.textCenter]} numberOfLines={1}>{r.category}</Text>
         </View>
       ) },
     { header: 'Sold', key: 'sold', width: 0.9, lines: 1 },
     { header: 'Revenue', key: 'revenue', width: 1.2, lines: 1, render: (r) => formatPeso(r.revenue) },
     { header: 'Profit', key: 'profit', width: 1.2, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Avg Margin', key: 'margin', width: 1.1, lines: 1, render: (r) => formatPercent(r.revenue > 0 ? r.profit / r.revenue : 0) },
   ];
 
   const peaksTop = [...peaks].sort((a, b) => b.sales - a.sales).slice(0, 4);
@@ -137,4 +138,5 @@ const styles = StyleSheet.create({
   muted: { fontSize: 12, color: colors.onCardSub },
   sortRow: { flexDirection: 'row', gap: 6, marginBottom: 12, flexWrap: 'wrap' },
   center: { alignItems: 'center' },
+  textCenter: { textAlign: 'center' },
 });

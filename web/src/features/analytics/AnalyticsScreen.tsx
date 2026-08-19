@@ -49,10 +49,10 @@ export default function AnalyticsScreen() {
           <span className="ml-2 text-xs text-stone-500">{r.category}</span>
         </div>
       ) },
-    { header: 'Sold', key: 'sold', className: 'text-right' },
-    { header: 'Revenue', key: 'revenue', className: 'text-right', render: (r) => formatPeso(r.revenue) },
-    { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
-    { header: 'Avg Margin', key: 'margin', className: 'text-right', render: (r) => formatPercent(r.profit / r.revenue) },
+    { header: 'Sold', key: 'sold' },
+    { header: 'Revenue', key: 'revenue', render: (r) => formatPeso(r.revenue) },
+    { header: 'Profit', key: 'profit', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
+    { header: 'Avg Margin', key: 'margin', render: (r) => formatPercent(r.profit / r.revenue) },
   ];
 
   return (

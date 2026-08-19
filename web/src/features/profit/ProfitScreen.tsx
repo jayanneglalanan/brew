@@ -117,7 +117,7 @@ export default function ProfitScreen() {
           columns={[
             { header: 'Expense', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
             { header: 'Category', key: 'category', render: (r) => <Badge variant="slate">{CATEGORY_LABEL[r.category] ?? r.category}</Badge> },
-            { header: 'Amount', key: 'amount', className: 'text-right', render: (r) => <b>{formatPeso(r.amount)}</b> },
+            { header: 'Amount', key: 'amount', render: (r) => <b>{formatPeso(r.amount)}</b> },
             { header: 'Recurring', key: 'recurring', render: (r) => (r.recurring ? <Badge variant="blue">recurring</Badge> : <span className="text-stone-500">—</span>) },
             { header: 'Date', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
           ]}

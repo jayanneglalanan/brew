@@ -39,7 +39,7 @@ export default function ProductsScreen() {
   const { user } = useAuth();
   const isManager = user?.role === 'manager';
   const tabs = isManager ? TABS.filter((t) => t.value !== 'profitability') : TABS;
-  const { products, categories, inventory, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
+  const { products, categories, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
   const [tab, setTab] = useState('products');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,11 +51,8 @@ export default function ProductsScreen() {
   const topById = useMemo(() => new Map(top.map((t) => [t.productId, t])), [top]);
   const cat = useMemo(() => getCategoryBreakdown(transactions, products, range), [products, transactions, range]);
   const catSales = useMemo(() => new Map(cat.map((c) => [c.category, c.sales])), [cat]);
-  const nameById = useMemo(() => new Map(inventory.map((i) => [i.id, { name: i.name, unit: i.unit }])), [inventory]);
   const categoryNames = categories.map((c) => c.name);
-
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-  const [viewTarget, setViewTarget] = useState<Product | null>(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [catForm, setCatForm] = useState({ name: '', icon: '' });
@@ -64,24 +61,27 @@ export default function ProductsScreen() {
   const productCols: Column<Product>[] = [
     { header: 'Product', key: 'name', width: 1.7, lines: 2, render: (r) => (
         <View>
-          <Text style={styles.bold} numberOfLines={2}>{r.name}</Text>
-          <Text style={styles.muted} numberOfLines={1}>{r.category}</Text>
+          <Text style={[styles.bold, styles.textCenter]}>{r.name}</Text>
+          <Text style={[styles.muted, styles.textCenter]} numberOfLines={1}>{r.category}</Text>
         </View>
       ) },
     { header: 'Price', key: 'price', width: 1.05, lines: 1, render: (r) => formatPeso(r.price) },
     { header: 'Cost', key: 'cost', width: 1.05, lines: 1, render: (r) => <Text style={styles.muted} numberOfLines={1}>{formatPeso(r.cost)}</Text> },
     ...(isManager
       ? []
-      : ([{ header: 'Profit', key: 'profit', width: 1.05, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> }] as Column<Product>[])),
-    { header: 'Status', key: 'status', width: 1.8, lines: 1, render: (r) => (
+      : ([
+          { header: 'Profit', key: 'profit', width: 1.05, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.price - r.cost)}</Text> },
+          { header: 'Margin', key: 'margin', width: 1.05, lines: 1, render: (r) => formatPercent(margin(r.cost, r.price)) },
+        ] as Column<Product>[])),
+    { header: 'Status', key: 'status', width: 1.7, lines: 1, render: (r) => (
         <Pressable onPress={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })}>
           <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
         </Pressable>
       ) },
-    { header: '', key: 'edit', width: 1.3, lines: 1, render: (r) => (
+    { header: 'Actions', key: 'edit', width: 1.6, lines: 1, render: (r) => (
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <Pressable onPress={() => setViewTarget(r)}><Badge variant="slate">View</Badge></Pressable>
           <Pressable onPress={() => openEdit(r)}><Badge variant="brand">Edit</Badge></Pressable>
+          <Pressable onPress={() => confirmDelete(r)}><Badge variant="critical">Del</Badge></Pressable>
         </View>
       ) },
   ];
@@ -148,7 +148,15 @@ export default function ProductsScreen() {
   const profRows = products.map((p) => {
     const sold = topById.get(p.id)?.sold ?? 0;
     const profit = p.price - p.cost;
-    return { ...p, sold, profit };
+    const quadrant =
+      sold >= 30 && profit >= 40
+        ? { label: '⭐ Best', variant: 'good' }
+        : sold >= 30
+          ? { label: '⚠ Review', variant: 'amber' }
+          : profit >= 40
+            ? { label: '📈 Market', variant: 'blue' }
+            : { label: '○ Watch', variant: 'slate' };
+    return { ...p, sold, profit, quadrant };
   }).sort((a, b) => b.sold - a.sold);
 
   return (
@@ -202,10 +210,13 @@ export default function ProductsScreen() {
         <Card title="Product Profitability" subtitle="⭐ Best · ⚠ Review · 📈 Market · ○ Watch">
           <Table
             columns={[
-              { header: 'Product', key: 'name', width: 1.8, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
-              { header: 'Profit', key: 'profit', width: 1.0, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }} numberOfLines={1}>{formatPeso(r.profit)}</Text> },
-              { header: 'Margin', key: 'margin', width: 1.0, lines: 1, render: (r) => formatPercent(margin(r.cost, r.price)) },
-              { header: 'Sold (wk)', key: 'sold', width: 1.0, lines: 1 },
+              { header: 'Product', key: 'name', width: 1.6, lines: 2, render: (r) => <Text style={[styles.bold, styles.textCenter]}>{r.name}</Text> },
+              { header: 'Price', key: 'price', width: 0.9, lines: 1, render: (r) => formatPeso(r.price) },
+              { header: 'Cost', key: 'cost', width: 0.9, lines: 1, render: (r) => <Text style={styles.muted} numberOfLines={1}>{formatPeso(r.cost)}</Text> },
+              { header: 'Profit', key: 'profit', width: 0.9, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }} numberOfLines={1}>{formatPeso(r.profit)}</Text> },
+              { header: 'Margin', key: 'margin', width: 0.9, lines: 1, render: (r) => formatPercent(margin(r.cost, r.price)) },
+              { header: 'Sold (wk)', key: 'sold', width: 0.9, lines: 1 },
+              { header: 'Quadrant', key: 'quadrant', width: 1.2, lines: 1, render: (r) => <Badge variant={r.quadrant.variant}>{r.quadrant.label}</Badge> },
             ]}
             rows={profRows}
             rowKey={(r) => r.id}
@@ -280,59 +291,13 @@ export default function ProductsScreen() {
         </View>
       </Modal>
 
-      <Modal visible={viewTarget !== null} animationType="fade" transparent onRequestClose={() => setViewTarget(null)}>
-        <View style={styles.modalWrap}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>{viewTarget?.name}</Text>
-            {viewTarget && (
-              <>
-                <Text style={styles.muted}>Category · {viewTarget.category}</Text>
-                <Text style={styles.detailText}>Price · <Text style={styles.detailStrong}>{formatPeso(viewTarget.price)}</Text></Text>
-                {!isManager && (
-                  <>
-                    <Text style={styles.detailText}>Cost · <Text style={styles.detailStrong}>{formatPeso(viewTarget.cost)}</Text></Text>
-                    <Text style={styles.detailText}>Profit · <Text style={styles.detailStrong}>{formatPeso(viewTarget.price - viewTarget.cost)}</Text></Text>
-                    <Text style={styles.detailText}>Margin · <Text style={styles.detailStrong}>{formatPercent(margin(viewTarget.cost, viewTarget.price))}</Text></Text>
-                  </>
-                )}
-                <View style={{ marginTop: gap.sm }}>
-                  <Badge variant={STATUS_VARIANT[viewTarget.status]}>{STATUS_LABEL[viewTarget.status]}</Badge>
-                </View>
-                {!isManager && (
-                  <>
-                    <Text style={styles.miniLabel}>Ingredients</Text>
-                    <View style={styles.chipRow}>
-                      {viewTarget.ingredients.length === 0 ? (
-                        <Text style={styles.muted}>No ingredients configured.</Text>
-                      ) : (
-                        viewTarget.ingredients.map((ing, idx) => {
-                          const info = nameById.get(ing.ingredientId);
-                          return (
-                            <View key={idx} style={styles.chip}>
-                              <Text style={styles.chipText}>{info?.name ?? ing.ingredientId} · {ing.qty} {info?.unit ?? ''}</Text>
-                            </View>
-                          );
-                        })
-                      )}
-                    </View>
-                  </>
-                )}
-              </>
-            )}
-            <View style={styles.modalActions}>
-              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={() => setViewTarget(null)}>
-                <Text style={styles.saveText}>Close</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, gap: gap.sm },
+  textCenter: { textAlign: 'center' },
   bold: { fontSize: 13, fontWeight: '700', color: colors.onCard },
   muted: { fontSize: 12, color: colors.onCardSub },
   modalWrap: { flex: 1, backgroundColor: 'rgba(61,48,42,0.4)', justifyContent: 'center', padding: gap.lg },

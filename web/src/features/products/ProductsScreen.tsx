@@ -17,11 +17,10 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Pagination from '@/components/ui/Pagination';
 import Table, { type Column } from '@/components/ui/Table';
 import { PageHeader, Tabs } from '@/components/ui/Page';
 import { ProgressBar } from '@/components/charts';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 const TABS = [
   { value: 'products', label: 'Products' },
@@ -31,7 +30,6 @@ const TABS = [
 
 const STATUS_VARIANT: Record<string, string> = { available: 'good', 'sold-out': 'critical', hidden: 'slate' };
 const STATUS_LABEL: Record<string, string> = { available: 'Available', 'sold-out': 'Sold Out', hidden: 'Hidden' };
-const PAGE_SIZE = 10;
 
 const EMPTY_FORM: Omit<Product, 'id'> = { name: '', category: 'Coffee', price: 0, cost: 0, ingredients: [], status: 'available', image: '' };
 
@@ -39,14 +37,12 @@ export default function ProductsScreen() {
   const { user } = useAuth();
   const isManager = user?.role === 'manager';
   const tabs = isManager ? TABS.filter((t) => t.value !== 'profitability') : TABS;
-  const { products, inventory, categories, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
+  const { products, categories, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
   const [tab, setTab] = useState('products');
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<Omit<Product, 'id'>>(EMPTY_FORM);
-  const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -58,27 +54,19 @@ export default function ProductsScreen() {
   const topById = useMemo(() => new Map(top.map((t) => [t.productId, t])), [top]);
   const catBreakdown = useMemo(() => getCategoryBreakdown(transactions, products, range), [range, products, transactions]);
   const catSales = useMemo(() => new Map(catBreakdown.map((c) => [c.category, c.sales])), [catBreakdown]);
-  const nameOf = useMemo(() => new Map(inventory.map((i) => [i.id, { name: i.name, unit: i.unit }])), [inventory]);
 
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const productColumns: Column<Product>[] = [
-    { header: 'Product', key: 'name', render: (r) => (
-        <div>
-          <span className="font-medium text-stone-800">{r.name}</span>
-          <p className="text-xs text-stone-500">{r.id}</p>
-        </div>
-      ) },
+    { header: 'Product', key: 'name', className: 'allow-wrap', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Category', key: 'category', render: (r) => <span className="text-stone-700">{r.category}</span> },
-    { header: 'Price', key: 'price', className: 'text-right', render: (r) => formatPeso(r.price) },
-    { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
+    { header: 'Price', key: 'price', render: (r) => formatPeso(r.price) },
+    { header: 'Cost', key: 'cost', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
     ...(isManager
       ? []
       : ([
-          { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.price - r.cost)}</span> },
-          { header: 'Margin', key: 'margin', className: 'text-right', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
+          { header: 'Profit', key: 'profit', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.price - r.cost)}</span> },
+          { header: 'Margin', key: 'margin', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
         ] as Column<Product>[])),
     { header: 'Status', key: 'status', render: (r) => (
         <button onClick={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })} title="Toggle availability">
@@ -86,8 +74,7 @@ export default function ProductsScreen() {
         </button>
       ) },
     { header: 'Actions', key: 'actions', render: (r) => (
-        <div className="flex items-center gap-1">
-          <button className="btn btn-ghost !px-2 !py-1 text-xs" onClick={() => setViewProduct(r)} title="View"><Eye size={14} /></button>
+        <div className="flex items-center justify-center gap-1">
           <button className="btn btn-ghost !px-2 !py-1 text-xs" onClick={() => openEdit(r)} title="Edit"><Pencil size={14} /></button>
           <button className="btn btn-ghost !px-2 !py-1 text-xs text-rose-600 hover:bg-rose-50" onClick={() => setDeleteTarget(r)} title="Delete"><Trash2 size={14} /></button>
         </div>
@@ -182,9 +169,8 @@ export default function ProductsScreen() {
 
       {tab === 'products' && (
         <Card title="Product List" subtitle="Click a status badge to toggle availability"
-          action={<input className="input w-56" placeholder="Search products…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />}>
-          <Table columns={productColumns} rows={visible} rowKey={(r) => r.id} />
-          <Pagination page={page} totalPages={pageCount} totalItems={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
+          action={<input className="input w-56" placeholder="Search products…" value={search} onChange={(e) => setSearch(e.target.value)} />}>
+          <Table columns={productColumns} rows={filtered} rowKey={(r) => r.id} />
         </Card>
       )}
 
@@ -232,12 +218,12 @@ export default function ProductsScreen() {
           <Card title="Product Profitability" subtitle="High-selling + high-profit are best products; high-selling + low-profit need pricing review">
             <Table
               columns={[
-                { header: 'Product', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
-                { header: 'Price', key: 'price', className: 'text-right', render: (r) => formatPeso(r.price) },
-                { header: 'Cost', key: 'cost', className: 'text-right', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
-                { header: 'Profit', key: 'profit', className: 'text-right', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
-                { header: 'Margin', key: 'margin', className: 'text-right', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
-                { header: 'Sold (wk)', key: 'sold', className: 'text-right' },
+                { header: 'Product', key: 'name', className: 'allow-wrap', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
+                { header: 'Price', key: 'price', render: (r) => formatPeso(r.price) },
+                { header: 'Cost', key: 'cost', render: (r) => <span className="text-stone-500">{formatPeso(r.cost)}</span> },
+                { header: 'Profit', key: 'profit', render: (r) => <span className="font-medium text-emerald-600">{formatPeso(r.profit)}</span> },
+                { header: 'Margin', key: 'margin', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
+                { header: 'Sold (wk)', key: 'sold' },
                 { header: 'Quadrant', key: 'quadrant', render: (r) => <Badge variant={r.quadrant.variant}>{r.quadrant.label}</Badge> },
               ]}
               rows={profitabilityRows}
@@ -303,43 +289,6 @@ export default function ProductsScreen() {
         </div>
       </Modal>
 
-      <Modal open={viewProduct !== null} title={viewProduct?.name ?? ''} onClose={() => setViewProduct(null)}>
-        {viewProduct && (
-          <div className="space-y-3 text-sm">
-            {!isManager && viewProduct.image && (
-              <img src={viewProduct.image} alt={viewProduct.name} className="h-40 w-full rounded-lg border border-stone-200 object-cover" />
-            )}
-            <DetailRow label="Category" value={viewProduct.category} />
-            <DetailRow label="Selling Price" value={formatPeso(viewProduct.price)} />
-            {!isManager && (
-              <>
-                <DetailRow label="Cost" value={formatPeso(viewProduct.cost)} />
-                <DetailRow label="Profit" value={formatPeso(viewProduct.price - viewProduct.cost)} />
-                <DetailRow label="Profit Margin" value={formatPercent(margin(viewProduct.cost, viewProduct.price))} />
-              </>
-            )}
-            <DetailRow label="Availability" value={STATUS_LABEL[viewProduct.status]} />
-            {!isManager && (
-              <div>
-                <p className="mb-1 text-stone-500">Ingredients</p>
-                {viewProduct.ingredients.length === 0 ? (
-                  <p className="text-xs text-stone-400">No ingredients configured.</p>
-                ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {viewProduct.ingredients.map((ing, idx) => {
-                      const info = nameOf.get(ing.ingredientId);
-                      return (
-                        <Badge key={idx} variant="slate">{info?.name ?? ing.ingredientId} · {ing.qty} {info?.unit ?? ''}</Badge>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </Modal>
-
       <ConfirmDialog
         open={deleteTarget !== null}
         title="Delete product"
@@ -359,15 +308,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="label mb-1 block">{label}</label>
       {children}
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-      <span className="text-stone-500">{label}</span>
-      <span className="font-medium text-stone-800">{value}</span>
     </div>
   );
 }

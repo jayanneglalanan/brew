@@ -15,29 +15,27 @@ interface TableProps<T> {
 
 export default function Table<T>({ columns, rows, rowKey }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto">
-      <table className="tbl w-full border-collapse">
-        <thead>
-          <tr className="border-b border-stone-200 bg-stone-50">
+    <table className="tbl w-full table-fixed border-collapse">
+      <thead>
+        <tr className="border-b border-stone-200 bg-stone-50">
+          {columns.map((c) => (
+            <th key={c.key} className={c.className}>
+              {c.header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-stone-100">
+        {rows.map((row, i) => (
+          <tr key={rowKey(row, i)} className="hover:bg-stone-50/60">
             {columns.map((c) => (
-              <th key={c.key} className={c.className}>
-                {c.header}
-              </th>
+              <td key={c.key} className={c.className}>
+                {c.render ? c.render(row, i) : String((row as Record<string, unknown>)[c.key] ?? '')}
+              </td>
             ))}
           </tr>
-        </thead>
-        <tbody className="divide-y divide-stone-100">
-          {rows.map((row, i) => (
-            <tr key={rowKey(row, i)} className="hover:bg-stone-50/60">
-              {columns.map((c) => (
-                <td key={c.key} className={c.className}>
-                  {c.render ? c.render(row, i) : String((row as Record<string, unknown>)[c.key] ?? '')}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }

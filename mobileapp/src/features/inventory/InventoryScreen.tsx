@@ -73,7 +73,6 @@ export default function InventoryScreen() {
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [itemForm, setItemForm] = useState(EMPTY_FORM);
-  const [viewItem, setViewItem] = useState<InventoryItem | null>(null);
 
   const { range } = useRangeFilter();
 
@@ -89,16 +88,16 @@ export default function InventoryScreen() {
   const nameById = useMemo(() => new Map(inventory.map((i) => [i.id, i.name])), [inventory]);
 
   const itemCols: Column<InventoryItem>[] = [
-    { header: 'Item', key: 'name', width: 1.7, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
-    { header: 'Stock', key: 'current', width: 1.1, lines: 1, render: (r) => (
+    { header: 'Stock Item', key: 'name', width: 1.5, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
+    { header: 'Category', key: 'category', width: 1.2, lines: 2, render: (r) => <Text style={[styles.muted, styles.center]} numberOfLines={2}>{r.category || '—'}</Text> },
+    { header: 'Current', key: 'current', width: 1.1, lines: 1, render: (r) => (
         <Text style={[styles.bold, { color: statusFor(r) === 'critical' ? colors.critical : statusFor(r) === 'low' ? colors.low : colors.good }]} numberOfLines={1}>
           {formatNumber(r.currentStock)} {r.unit}
         </Text>
       ) },
     { header: 'Status', key: 'status', width: 1.1, lines: 1, render: (r) => <Badge variant={STATUS_VARIANT[statusFor(r)]}>{statusFor(r)}</Badge> },
-    { header: '', key: 'actions', width: 1.4, lines: 1, render: (r) => (
+    { header: 'Actions', key: 'actions', width: 1.4, lines: 1, render: (r) => (
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <Pressable onPress={() => setViewItem(r)}><Badge variant="slate">View</Badge></Pressable>
           <Pressable onPress={() => openItemEdit(r)}><Badge variant="brand">Edit</Badge></Pressable>
           <Pressable onPress={() => confirmDelete(r)}><Badge variant="critical">Del</Badge></Pressable>
         </View>
@@ -106,31 +105,34 @@ export default function InventoryScreen() {
   ];
 
   const statusCols: Column<(typeof statusRows)[number]>[] = [
-    { header: 'Item', key: 'name', width: 2.0, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.name}</Text> },
-    { header: 'Stock', key: 'current', width: 1.0, lines: 1, render: (r) => (
+    { header: 'Ingredient', key: 'name', width: 2.0, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
+    { header: 'Current', key: 'current', width: 1.0, lines: 1, render: (r) => (
         <Text style={[styles.bold, { color: r.status === 'critical' ? colors.critical : r.status === 'low' ? colors.low : colors.good }]} numberOfLines={1}>
           {r.current} {r.unit}
         </Text>
       ) },
+    { header: 'Unit', key: 'unit', width: 0.7, lines: 1 },
     { header: 'Status', key: 'status', width: 1.2, lines: 1, render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge> },
   ];
 
   const historyCols: Column<(typeof history)[number]>[] = [
-    { header: 'Date', key: 'timestamp', width: 1.6, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
-    { header: 'Item', key: 'itemId', width: 1.4, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{nameById.get(r.itemId) ?? r.itemId}</Text> },
+    { header: 'Timestamp', key: 'timestamp', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
+    { header: 'Item', key: 'itemId', width: 1.3, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{nameById.get(r.itemId) ?? r.itemId}</Text> },
     { header: 'Type', key: 'type', width: 1.0, lines: 1, render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : r.type === 'wastage' ? 'low' : r.type === 'purchase' ? 'good' : 'brand'}>{TYPE_LABEL[r.type]}</Badge> },
     { header: 'Qty', key: 'qty', width: 0.9, lines: 1, render: (r) => (
         <Text style={{ color: typeof r.qty === 'number' ? (r.qty < 0 ? colors.critical : colors.good) : colors.sub, fontWeight: '700' }} numberOfLines={1}>
           {typeof r.qty === 'number' ? `${r.qty > 0 ? '+' : ''}${formatNumber(r.qty)}` : r.qty}
         </Text>
       ) },
+    { header: 'Note', key: 'note', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{r.note ?? '—'}</Text> },
   ];
 
   const wasteCols: Column<(typeof wastage)[number]>[] = [
-    { header: 'Item', key: 'item', width: 1.6, lines: 2, render: (r) => <Text style={styles.bold} numberOfLines={2}>{r.item}</Text> },
+    { header: 'Item', key: 'item', width: 1.5, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.item}</Text> },
     { header: 'Type', key: 'type', width: 0.9, lines: 1, render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{r.type}</Badge> },
     { header: 'Qty', key: 'qty', width: 0.9, lines: 1, render: (r) => <Text style={{ color: colors.critical }} numberOfLines={1}>{typeof r.qty === 'number' ? `-${formatNumber(r.qty)} ${r.unit}` : r.qty}</Text> },
-    { header: 'Date', key: 'timestamp', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
+    { header: 'Note', key: 'note', width: 1.3, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{r.note ?? '—'}</Text> },
+    { header: 'Date', key: 'timestamp', width: 1.3, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
   ];
 
   const saveMovement = () => {
@@ -314,28 +316,6 @@ export default function InventoryScreen() {
           </ScrollView>
         </View>
       </Modal>
-
-      <Modal visible={viewItem !== null} animationType="fade" transparent onRequestClose={() => setViewItem(null)}>
-        <View style={styles.modalWrap}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>{viewItem?.name}</Text>
-            {viewItem && (
-              <>
-                <Text style={styles.muted}>Category · {viewItem.category || '—'}</Text>
-                <Text style={styles.detailText}>Current Stock · <Text style={styles.detailStrong}>{formatNumber(viewItem.currentStock)} {viewItem.unit}</Text></Text>
-                <View style={{ marginTop: gap.sm }}>
-                  <Badge variant={STATUS_VARIANT[statusFor(viewItem)]}>{statusFor(viewItem)}</Badge>
-                </View>
-              </>
-            )}
-            <View style={styles.modalActions}>
-              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={() => setViewItem(null)}>
-                <Text style={styles.saveText}>Close</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </Screen>
   );
 }
@@ -343,6 +323,7 @@ export default function InventoryScreen() {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   half: { width: '48%' },
+  center: { textAlign: 'center' },
   bold: { fontSize: 13, fontWeight: '700', color: colors.onCard },
   muted: { fontSize: 12, color: colors.onCardSub },
   search: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, marginBottom: gap.md },

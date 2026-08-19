@@ -63,11 +63,12 @@ export default function SalesScreen() {
   const refunds = useMemo(() => transactions.filter((t) => t.status === 'refunded' && inRange(t)), [range]);
 
   const txColumns: Column<(typeof completed)[number]>[] = [
-    { header: 'Order', key: 'orderNumber', width: 1.1, lines: 2, render: (r) => <Text style={styles.bold}>{r.orderNumber}</Text> },
+    { header: 'Order #', key: 'orderNumber', width: 1.1, lines: 2, render: (r) => <Text style={styles.bold}>{r.orderNumber}</Text> },
     { header: 'Time', key: 'time', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted}>{formatDateTime(r.timestamp)}</Text> },
     { header: 'Cashier', key: 'cashier', width: 1.1, lines: 2, render: (r) => staffName.get(r.cashierId) ?? '-' },
     { header: 'Items', key: 'items', width: 0.7, lines: 1, render: (r) => transactionItemsCount(r) },
-    { header: 'Pay', key: 'pay', width: 0.9, lines: 1, render: (r) => <Badge variant={PAYMENT_VARIANT[r.paymentMethod]}>{PAYMENT_LABEL[r.paymentMethod]}</Badge> },
+    { header: 'Payment', key: 'pay', width: 1.0, lines: 1, render: (r) => <Badge variant={PAYMENT_VARIANT[r.paymentMethod]}>{PAYMENT_LABEL[r.paymentMethod]}</Badge> },
+    { header: 'Discount', key: 'discount', width: 1.0, lines: 1, render: (r) => (r.discount > 0 ? <Text style={styles.muted}>-{formatPeso(r.discount)}</Text> : <Text style={styles.muted}>—</Text>) },
     { header: 'Total', key: 'total', width: 1.0, lines: 1, render: (r) => <Text style={styles.bold}>{formatPeso(transactionNet(r))}</Text> },
     { header: 'Status', key: 'status', width: 1.0, lines: 1, render: (r) => <Badge variant={r.status === 'completed' ? 'good' : r.status === 'voided' ? 'low' : 'critical'}>{r.status}</Badge> },
   ];

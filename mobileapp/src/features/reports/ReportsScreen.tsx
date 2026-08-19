@@ -61,24 +61,26 @@ export default function ReportsScreen() {
   const periodCols: Column<(typeof periodRows)[number]>[] = [
     { header: 'Period', key: 'label', width: 1.2, lines: 2, render: (r) => <Text style={styles.bold}>{r.label}</Text> },
     { header: 'Net Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
-    { header: 'Tx', key: 'tx', width: 0.8, lines: 1 },
-    { header: 'Profit', key: 'profit', width: 1.2, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
+    { header: 'Transactions', key: 'tx', width: 1.1, lines: 1 },
+    { header: 'Net Profit', key: 'profit', width: 1.2, lines: 1, render: (r) => <Text style={{ color: colors.good, fontWeight: '700' }}>{formatPeso(r.profit)}</Text> },
   ];
   const dailyCols: Column<(typeof daily)[number]>[] = [
     { header: 'Date', key: 'label', width: 1.2, lines: 1 },
     { header: 'Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
-    { header: 'Tx', key: 'transactions', width: 0.8, lines: 1 },
+    { header: 'Transactions', key: 'transactions', width: 1.1, lines: 1 },
   ];
   const stockCols: Column<(typeof stockRows)[number]>[] = [
-    { header: 'Item', key: 'name', width: 1.8, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Stock', key: 'current', width: 1.0, lines: 1, render: (r) => `${r.current} ${r.unit}` },
+    { header: 'Item', key: 'name', width: 1.8, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
+    { header: 'Current', key: 'current', width: 1.0, lines: 1, render: (r) => `${r.current} ${r.unit}` },
     { header: 'Status', key: 'status', width: 1.1, lines: 1, render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
   ];
   const staffCols: Column<(typeof staffRows)[number]>[] = [
-    { header: 'Staff', key: 'name', width: 1.4, lines: 2, render: (r) => <Text style={styles.bold}>{r.name}</Text> },
-    { header: 'Tx', key: 'transactions', width: 0.8, lines: 1 },
+    { header: 'Staff', key: 'name', width: 1.4, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
+    { header: 'Role', key: 'role', width: 1.0, lines: 1, render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
+    { header: 'Transactions', key: 'transactions', width: 1.1, lines: 1 },
     { header: 'Sales', key: 'sales', width: 1.2, lines: 1, render: (r) => formatPeso(r.sales) },
     { header: 'Voids', key: 'voids', width: 0.9, lines: 1, render: (r) => <Text style={{ color: r.voids > 0 ? colors.critical : colors.sub }}>{r.voids}</Text> },
+    { header: 'Discounts', key: 'discounts', width: 1.1, lines: 1, render: (r) => formatPeso(r.discounts) },
   ];
 
   return (
@@ -160,6 +162,7 @@ function Line({ label, value, bold, sub }: { label: string; value: number; bold?
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: gap.md },
+  center: { textAlign: 'center' },
   mini: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: colors.line, padding: gap.lg, alignItems: 'center', marginBottom: gap.md },
   miniLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', color: colors.sub },
   miniValue: { marginTop: 4, fontSize: 22, fontWeight: '800' },

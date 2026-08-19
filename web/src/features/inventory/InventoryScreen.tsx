@@ -18,10 +18,9 @@ import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Pagination from '@/components/ui/Pagination';
 import Table, { type Column } from '@/components/ui/Table';
 import { PageHeader, Tabs } from '@/components/ui/Page';
-import { Eye, Package, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Package, Pencil, Plus, Trash2 } from 'lucide-react';
 
 const TABS = [
   { value: 'overview', label: 'Overview' },
@@ -35,7 +34,6 @@ const STATUS_VARIANT: Record<string, string> = { good: 'good', low: 'low', criti
 const STATUS_LABEL: Record<string, string> = { good: '🟢 Good', low: '🟡 Low', critical: '🔴 Critical' };
 const TYPE_LABEL: Record<string, string> = { purchase: 'Purchase', sale: 'Sale', wastage: 'Wastage', damaged: 'Damaged', adjustment: 'Adjustment' };
 const TYPE_VARIANT: Record<string, string> = { purchase: 'good', sale: 'blue', wastage: 'low', damaged: 'critical', adjustment: 'slate' };
-const PAGE_SIZE = 10;
 
 const EMPTY_FORM = {
   name: '',
@@ -55,12 +53,9 @@ function statusColor(status: string) {
   return 'text-emerald-600';
 }
 
-function ActionButtons({ onView, onEdit, onDelete }: { onView: () => void; onEdit: () => void; onDelete: () => void }) {
+function ActionButtons({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="flex items-center gap-1">
-      <button className="btn btn-ghost !px-2 !py-1 text-xs" onClick={onView} title="View">
-        <Eye size={14} />
-      </button>
+    <div className="flex items-center justify-center gap-1">
       <button className="btn btn-ghost !px-2 !py-1 text-xs" onClick={onEdit} title="Edit">
         <Pencil size={14} />
       </button>
@@ -86,7 +81,6 @@ export default function InventoryScreen() {
   const [tab, setTab] = useState('overview');
   const [filter, setFilter] = useState<RangeFilter>('week');
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [mvType, setMvType] = useState<'wastage' | 'damaged'>('wastage');
   const [mvItem, setMvItem] = useState('');
@@ -96,7 +90,6 @@ export default function InventoryScreen() {
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [itemForm, setItemForm] = useState(EMPTY_FORM);
-  const [viewItem, setViewItem] = useState<InventoryItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null);
 
   const range = isManager ? getDateRange(filter) : shared.range;
@@ -107,27 +100,17 @@ export default function InventoryScreen() {
   const lowRows = statusRows.filter((r) => r.status !== 'good');
 
   const filteredItems = inventory.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
-  const itemsPageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
-  const visibleItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const nameById = useMemo(() => new Map(inventory.map((i) => [i.id, i.name])), [inventory]);
-  const [historyPage, setHistoryPage] = useState(1);
   const history = useMemo(
     () => [...stockMovements].sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
     [stockMovements],
   );
-  const historyPageCount = Math.max(1, Math.ceil(history.length / PAGE_SIZE));
-  const visibleHistory = history.slice((historyPage - 1) * PAGE_SIZE, historyPage * PAGE_SIZE);
 
   const itemColumns: Column<InventoryItem>[] = [
-    { header: 'Stock Item', key: 'name', render: (r) => (
-        <div>
-          <span className="font-medium text-stone-800">{r.name}</span>
-          <p className="text-xs text-stone-500">{r.id}</p>
-        </div>
-      ) },
+    { header: 'Stock Item', key: 'name', className: 'allow-wrap', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Category', key: 'category', render: (r) => <span className="text-stone-700">{r.category || '—'}</span> },
-    { header: 'Current', key: 'currentStock', className: 'text-right', render: (r) => (
+    { header: 'Current', key: 'currentStock', render: (r) => (
         <b className={statusColor(r.currentStock <= r.criticalLevel ? 'critical' : r.currentStock <= r.reorderLevel ? 'low' : 'good')}>
           {formatNumber(r.currentStock)} {r.unit}
         </b>
@@ -137,13 +120,13 @@ export default function InventoryScreen() {
         return <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
       } },
     { header: 'Actions', key: 'actions', render: (r) => (
-        <ActionButtons onView={() => setViewItem(r)} onEdit={() => openItemEdit(r)} onDelete={() => setDeleteTarget(r)} />
+        <ActionButtons onEdit={() => openItemEdit(r)} onDelete={() => setDeleteTarget(r)} />
       ) },
   ];
 
   const statusColumns: Column<(typeof statusRows)[number]>[] = [
     { header: 'Ingredient', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
-    { header: 'Current', key: 'current', className: 'text-right', render: (r) => <b className={statusColor(r.status)}>{r.current}</b> },
+    { header: 'Current', key: 'current', render: (r) => <b className={statusColor(r.status)}>{r.current}</b> },
     { header: 'Unit', key: 'unit' },
     { header: 'Status', key: 'status', render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge> },
   ];
@@ -152,7 +135,7 @@ export default function InventoryScreen() {
     { header: 'Timestamp', key: 'timestamp', render: (r) => <span className="whitespace-nowrap text-stone-500">{formatDateTime(r.timestamp)}</span> },
     { header: 'Item', key: 'itemId', render: (r) => <span className="font-medium text-stone-800">{nameById.get(r.itemId) ?? r.itemId}</span> },
     { header: 'Type', key: 'type', render: (r) => <Badge variant={TYPE_VARIANT[r.type]}>{TYPE_LABEL[r.type]}</Badge> },
-    { header: 'Qty', key: 'qty', className: 'text-right', render: (r) =>
+    { header: 'Qty', key: 'qty', render: (r) =>
         typeof r.qty === 'number' ? (
           <span className={r.qty < 0 ? 'text-rose-600' : 'text-emerald-600'}>{r.qty > 0 ? '+' : ''}{formatNumber(r.qty)}</span>
         ) : (
@@ -165,7 +148,7 @@ export default function InventoryScreen() {
   const wasteColumns: Column<(typeof wastage)[number]>[] = [
     { header: 'Item', key: 'item', render: (r) => <span className="font-medium text-stone-800">{r.item}</span> },
     { header: 'Type', key: 'type', render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : 'low'}>{TYPE_LABEL[r.type]}</Badge> },
-    { header: 'Qty', key: 'qty', className: 'text-right', render: (r) => (
+    { header: 'Qty', key: 'qty', render: (r) => (
         <b className="text-rose-600">{typeof r.qty === 'number' ? `-${formatNumber(r.qty)} ${r.unit}` : r.qty}</b>
       ) },
     { header: 'Note', key: 'note' },
@@ -233,7 +216,7 @@ export default function InventoryScreen() {
         <Tabs tabs={TABS} active={tab} onChange={setTab} />
         <div className="flex items-center gap-2">
           {tab === 'items' && (
-            <input className="input w-56" placeholder="Search stock items…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            <input className="input w-56" placeholder="Search stock items…" value={search} onChange={(e) => setSearch(e.target.value)} />
           )}
           {isManager && (tab === 'wastage') && (
             <select value={filter} onChange={(e) => setFilter(e.target.value as RangeFilter)} className="input">
@@ -264,15 +247,13 @@ export default function InventoryScreen() {
 
       {tab === 'items' && (
         <Card title="All Stock Items">
-          <Table columns={itemColumns} rows={visibleItems} rowKey={(r) => r.id} />
-          <Pagination page={page} totalPages={itemsPageCount} totalItems={filteredItems.length} pageSize={PAGE_SIZE} onChange={setPage} />
+          <Table columns={itemColumns} rows={filteredItems} rowKey={(r) => r.id} />
         </Card>
       )}
 
       {tab === 'history' && (
         <Card title="Movement History" subtitle="Every stock movement with a timestamp">
-          <Table columns={historyColumns} rows={visibleHistory} rowKey={(r) => r.id} />
-          <Pagination page={historyPage} totalPages={historyPageCount} totalItems={history.length} pageSize={PAGE_SIZE} onChange={setHistoryPage} />
+          <Table columns={historyColumns} rows={history} rowKey={(r) => r.id} />
         </Card>
       )}
 
@@ -358,23 +339,6 @@ export default function InventoryScreen() {
         </div>
       </Modal>
 
-      <Modal open={viewItem !== null} title={viewItem?.name ?? ''} onClose={() => setViewItem(null)}>
-        {viewItem && (
-          <div className="space-y-3 text-sm">
-            <DetailRow label="ID" value={viewItem.id} />
-            <DetailRow label="Category" value={viewItem.category || '—'} />
-            <DetailRow label="Current Stock" value={`${formatNumber(viewItem.currentStock)} ${viewItem.unit}`} />
-            <DetailRow
-              label="Status"
-              value={(() => {
-                const s = viewItem.currentStock <= viewItem.criticalLevel ? 'critical' : viewItem.currentStock <= viewItem.reorderLevel ? 'low' : 'good';
-                return STATUS_LABEL[s];
-              })()}
-            />
-          </div>
-        )}
-      </Modal>
-
       <ConfirmDialog
         open={deleteTarget !== null}
         title="Delete stock item"
@@ -385,15 +349,6 @@ export default function InventoryScreen() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-      <span className="text-stone-500">{label}</span>
-      <span className="font-medium text-stone-800">{value}</span>
     </div>
   );
 }

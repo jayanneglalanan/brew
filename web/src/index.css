@@ -57,10 +57,21 @@ body {
     appearance: textfield;
   }
   .tbl th {
-    @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-stone-500;
+    @apply px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-stone-500 align-middle;
   }
   .tbl td {
-    @apply px-4 py-2.5 text-sm;
+    @apply px-4 py-2.5 text-sm text-center align-middle;
+  }
+  .tbl th,
+  .tbl td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tbl td.allow-wrap {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 }
 

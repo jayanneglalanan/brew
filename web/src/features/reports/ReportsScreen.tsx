@@ -66,29 +66,29 @@ export default function ReportsScreen() {
 
   const periodColumns: Column<PeriodRow>[] = [
     { header: 'Period', key: 'period', render: (r) => <b className="text-stone-800">{r.period}</b> },
-    { header: 'Net Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Transactions', key: 'transactions', className: 'text-right' },
-    { header: 'Net Profit', key: 'profit', className: 'text-right', render: (r) => <b className="text-emerald-600">{formatPeso(r.profit)}</b> },
+    { header: 'Net Sales', key: 'sales', render: (r) => formatPeso(r.sales) },
+    { header: 'Transactions', key: 'transactions' },
+    { header: 'Net Profit', key: 'profit', render: (r) => <b className="text-emerald-600">{formatPeso(r.profit)}</b> },
   ];
 
   const dailyColumns: Column<(typeof dailyRows)[number]>[] = [
     { header: 'Date', key: 'label' },
-    { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Transactions', key: 'transactions', className: 'text-right' },
+    { header: 'Sales', key: 'sales', render: (r) => formatPeso(r.sales) },
+    { header: 'Transactions', key: 'transactions' },
   ];
 
   const staffColumns: Column<(typeof staffRows)[number]>[] = [
     { header: 'Staff', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Role', key: 'role', render: (r) => <Badge variant={r.role === 'cashier' ? 'slate' : 'brand'}>{r.role}</Badge> },
-    { header: 'Transactions', key: 'transactions', className: 'text-right' },
-    { header: 'Sales', key: 'sales', className: 'text-right', render: (r) => formatPeso(r.sales) },
-    { header: 'Voids', key: 'voids', className: 'text-right', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
-    { header: 'Discounts', key: 'discounts', className: 'text-right', render: (r) => formatPeso(r.discounts) },
+    { header: 'Transactions', key: 'transactions' },
+    { header: 'Sales', key: 'sales', render: (r) => formatPeso(r.sales) },
+    { header: 'Voids', key: 'voids', render: (r) => <span className={r.voids > 0 ? 'text-rose-600' : 'text-stone-500'}>{r.voids}</span> },
+    { header: 'Discounts', key: 'discounts', render: (r) => formatPeso(r.discounts) },
   ];
 
   const stockColumns: Column<(typeof stockRows)[number]>[] = [
     { header: 'Item', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
-    { header: 'Current', key: 'current', className: 'text-right', render: (r) => <b>{r.current} {r.unit}</b> },
+    { header: 'Current', key: 'current', render: (r) => <b>{r.current} {r.unit}</b> },
     { header: 'Status', key: 'status', render: (r) => <Badge variant={r.status}>{r.status}</Badge> },
   ];
 
