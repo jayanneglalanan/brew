@@ -18,6 +18,8 @@ import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import Dropdown from '@/components/ui/Dropdown';
+import { useToast } from '@/components/ui/Toast';
 import Table, { type Column } from '@/components/ui/Table';
 import { PageHeader, Tabs } from '@/components/ui/Page';
 import { Package, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -76,6 +78,7 @@ export default function InventoryScreen() {
     deleteInventoryItem,
   } = useData();
   const { user } = useAuth();
+  const { toast } = useToast();
   const isManager = user?.role === 'manager';
   const shared = useRangeFilter();
   const [tab, setTab] = useState('overview');
@@ -91,6 +94,7 @@ export default function InventoryScreen() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [itemForm, setItemForm] = useState(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null);
+  const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
 
   const range = isManager ? getDateRange(filter) : shared.range;
 
@@ -117,7 +121,7 @@ export default function InventoryScreen() {
       ) },
     { header: 'Status', key: 'status', render: (r) => {
         const status = r.currentStock <= r.criticalLevel ? 'critical' : r.currentStock <= r.reorderLevel ? 'low' : 'good';
-        return <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
+        return <Badge variant={STATUS_VARIANT[status]} className={status !== 'good' ? 'pulse-once' : ''}>{STATUS_LABEL[status]}</Badge>;
       } },
     { header: 'Actions', key: 'actions', render: (r) => (
         <ActionButtons onEdit={() => openItemEdit(r)} onDelete={() => setDeleteTarget(r)} />
@@ -128,7 +132,7 @@ export default function InventoryScreen() {
     { header: 'Ingredient', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
     { header: 'Current', key: 'current', render: (r) => <b className={statusColor(r.status)}>{r.current}</b> },
     { header: 'Unit', key: 'unit' },
-    { header: 'Status', key: 'status', render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge> },
+    { header: 'Status', key: 'status', render: (r) => <Badge variant={STATUS_VARIANT[r.status]} className={r.status !== 'good' ? 'pulse-once' : ''}>{STATUS_LABEL[r.status]}</Badge> },
   ];
 
   const historyColumns: Column<(typeof history)[number]>[] = [
@@ -162,6 +166,7 @@ export default function InventoryScreen() {
     const n = Number(raw);
     const qty = Number.isFinite(n) ? -Math.abs(n) : raw;
     recordMovement({ type: mvType, itemId: item.id, qty, note: mvNote || `${TYPE_LABEL[mvType]} entry` });
+    toast(`${item.name} — ${TYPE_LABEL[mvType]} recorded`);
     setModalOpen(false);
     setMvNote('');
     setMvQty('1');
@@ -195,8 +200,13 @@ export default function InventoryScreen() {
       supplier: itemForm.supplier.trim() || undefined,
       expirationDate: itemForm.expirationDate.trim() || undefined,
     };
-    if (editingItem) updateInventoryItem({ ...editingItem, ...payload });
-    else addInventoryItem(payload);
+    if (editingItem) {
+      updateInventoryItem({ ...editingItem, ...payload });
+      toast(`${editingItem.name} updated`);
+    } else {
+      addInventoryItem(payload);
+      toast(`${payload.name} added to inventory`);
+    }
     setItemModalOpen(false);
   };
 
@@ -219,13 +229,18 @@ export default function InventoryScreen() {
             <input className="input w-56" placeholder="Search stock items…" value={search} onChange={(e) => setSearch(e.target.value)} />
           )}
           {isManager && (tab === 'wastage') && (
-            <select value={filter} onChange={(e) => setFilter(e.target.value as RangeFilter)} className="input">
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="all">All Time</option>
-            </select>
+            <Dropdown
+              value={filter}
+              onChange={setFilter}
+              className="w-40"
+              options={[
+                { value: 'today', label: 'Today' },
+                { value: 'yesterday', label: 'Yesterday' },
+                { value: 'week', label: 'This Week' },
+                { value: 'month', label: 'This Month' },
+                { value: 'all', label: 'All Time' },
+              ]}
+            />
           )}
         </div>
       </div>
@@ -247,7 +262,7 @@ export default function InventoryScreen() {
 
       {tab === 'items' && (
         <Card title="All Stock Items">
-          <Table columns={itemColumns} rows={filteredItems} rowKey={(r) => r.id} />
+          <Table columns={itemColumns} rows={filteredItems} rowKey={(r) => r.id} removingKeys={removingKeys} />
         </Card>
       )}
 
@@ -319,9 +334,12 @@ export default function InventoryScreen() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label mb-1 block">Unit of Measurement</label>
-              <select className="input w-full" value={itemForm.unit} onChange={(e) => setItemForm({ ...itemForm, unit: e.target.value })}>
-                {['kg', 'g', 'L', 'mL', 'pcs', 'ct', 'pack'].map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
+              <Dropdown
+                value={itemForm.unit}
+                onChange={(v) => setItemForm({ ...itemForm, unit: v })}
+                className="w-full"
+                options={['kg', 'g', 'L', 'mL', 'pcs', 'ct', 'pack'].map((u) => ({ value: u, label: u }))}
+              />
             </div>
             <div>
               <label className="label mb-1 block">Category</label>
@@ -344,8 +362,19 @@ export default function InventoryScreen() {
         title="Delete stock item"
         message={`Remove "${deleteTarget?.name}" from inventory? This cannot be undone.`}
         onConfirm={() => {
-          if (deleteTarget) deleteInventoryItem(deleteTarget.id);
+          const target = deleteTarget;
           setDeleteTarget(null);
+          if (!target) return;
+          setRemovingKeys((prev) => new Set(prev).add(target.id));
+          setTimeout(() => {
+            deleteInventoryItem(target.id);
+            setRemovingKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(target.id);
+              return next;
+            });
+            toast(`${target.name} removed from inventory`);
+          }, 200);
         }}
         onCancel={() => setDeleteTarget(null)}
       />

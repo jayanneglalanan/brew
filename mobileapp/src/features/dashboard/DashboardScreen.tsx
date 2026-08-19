@@ -46,10 +46,10 @@ export default function DashboardScreen() {
   return (
     <Screen title="Dashboard" subtitle={`How is the coffee shop doing ${range.label.toLowerCase()}?`} sticky={<RangeFilterDropdown />}>
       <View style={styles.grid}>
-        <StatCard label="Net Sales" value={formatPeso(sales.netSales)} icon="💰" style={styles.half} />
-        <StatCard label="Net Profit" value={formatPeso(profit.netProfit)} icon="📈" accent="green" style={styles.half} />
-        <StatCard label="Transactions" value={formatNumber(sales.transactions)} icon="🧾" accent="blue" style={styles.half} />
-        <StatCard label="Margin" value={formatPercent(profit.netMargin)} icon="📊" accent="amber" style={styles.half} />
+        <StatCard label="Net Sales" count={sales.netSales} format={formatPeso} icon="💰" style={styles.half} />
+        <StatCard label="Net Profit" count={profit.netProfit} format={formatPeso} icon="📈" accent="green" style={styles.half} />
+        <StatCard label="Transactions" count={sales.transactions} format={formatNumber} icon="🧾" accent="blue" style={styles.half} />
+        <StatCard label="Margin" count={profit.netMargin} format={formatPercent} icon="📊" accent="amber" style={styles.half} />
       </View>
 
       <Card title="Sales Overview" subtitle="Last 7 days net sales">

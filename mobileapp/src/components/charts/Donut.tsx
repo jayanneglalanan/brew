@@ -1,6 +1,8 @@
-import { View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated } from 'react-native';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { colors } from '../../theme';
+import { EASE_CUBIC, useReducedMotion } from '../../animations';
 
 const DEFAULT_COLORS = ['#8B6F5A', '#9CC0A0', '#E3C285', '#D5A59E', '#C9A98F', '#5C4033', '#8FAF91'];
 
@@ -29,21 +31,46 @@ export default function Donut({
   centerLabel?: string;
   colors?: string[];
 }) {
+  const reduced = useReducedMotion();
+  const [p, setP] = useState(reduced ? 1 : 0);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      setP(1);
+      return;
+    }
+    anim.setValue(0);
+    const id = anim.addListener(({ value }) => setP(value));
+    Animated.timing(anim, { toValue: 1, duration: 600, easing: EASE_CUBIC, useNativeDriver: false }).start();
+    return () => anim.removeListener(id);
+  }, [anim, reduced]);
+
   const total = data.reduce((s, d) => s + d.value, 0);
   const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
   let angle = 0;
+  const segments = data.map((d, i) => {
+    const sweep = (d.value / total) * 360;
+    const path = arcPath(cx, cy, r, angle, angle + sweep);
+    angle += sweep;
+    return { key: `${d.name}-${i}`, path, color: palette[i % palette.length], i };
+  });
+
+  const opacity = Math.min(1, Math.max(0, (p - 0.2) / 0.8));
+  const scale = 0.96 + 0.04 * Math.min(1, p * 1.2);
+
   return (
-    <View>
+    <Animated.View style={{ opacity, transform: [{ scale }], alignSelf: 'center' }}>
       <Svg width={size} height={size}>
         <Path d={arcPath(cx, cy, r, 0, 360)} stroke="rgba(61,48,42,0.12)" strokeWidth={stroke} fill="none" />
         {total > 0
-          ? data.map((d, i) => {
-              const sweep = (d.value / total) * 360;
-              const p = arcPath(cx, cy, r, angle, angle + sweep);
-              angle += sweep;
-              return <Path key={`${d.name}-${i}`} d={p} stroke={palette[i % palette.length]} strokeWidth={stroke} fill="none" strokeLinecap="butt" />;
+          ? segments.map((seg) => {
+              const segOpacity = Math.min(1, Math.max(0, (p - seg.i * 0.22) / 0.25));
+              return (
+                <Path key={seg.key} d={seg.path} stroke={seg.color} strokeWidth={stroke} fill="none" strokeLinecap="butt" opacity={segOpacity} />
+              );
             })
           : null}
         {centerLabel ? (
@@ -52,6 +79,6 @@ export default function Donut({
           </SvgText>
         ) : null}
       </Svg>
-    </View>
+    </Animated.View>
   );
 }

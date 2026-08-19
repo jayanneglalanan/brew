@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/app/AuthContext';
 import { useShopName } from '@/app/ShopNameContext';
 import { DEMO_ACCOUNTS, loadEmail, saveEmail, savePassword } from '@/app/auth';
 import Card from '@/components/ui/Card';
+import { useToast } from '@/components/ui/Toast';
 import { PageHeader } from '@/components/ui/Page';
 
 function readFileAsDataUrl(file: File, onDone: (dataUrl: string) => void): void {
@@ -36,6 +38,7 @@ function readFileAsDataUrl(file: File, onDone: (dataUrl: string) => void): void 
 export default function SettingsScreen() {
   const { user, updateProfile } = useAuth();
   const { shopName, setShopName, businessHours, setBusinessHours, logoImage, setLogoImage } = useShopName();
+  const { toast } = useToast();
 
   const demoEmail = useMemo(() => DEMO_ACCOUNTS.find((a) => a.user.id === user?.id)?.email ?? '', [user]);
 
@@ -91,6 +94,7 @@ export default function SettingsScreen() {
 
     setConfirmOpen(false);
     setPasswordDraft('');
+    toast('Profile saved');
   };
 
   return (
@@ -180,21 +184,23 @@ export default function SettingsScreen() {
         ) : null}
       </div>
 
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40" onClick={() => setConfirmOpen(false)}>
-          <div className="w-full max-w-[280px] rounded-xl border border-stone-200 bg-white p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
-            <p className="mb-3 text-sm font-semibold text-stone-800">Save Profile</p>
-            <div className="flex gap-2">
-              <button className="btn flex-1 bg-stone-100 text-stone-700 hover:bg-stone-200" onClick={() => setConfirmOpen(false)}>
-                Cancel
-              </button>
-              <button className="btn btn-primary flex-1" onClick={confirmSave}>
-                Save
-              </button>
+      {confirmOpen &&
+        createPortal(
+          <div className="animate-backdrop fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40" onClick={() => setConfirmOpen(false)}>
+            <div className="animate-panel-in w-full max-w-[280px] rounded-xl border border-stone-200 bg-white p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+              <p className="mb-3 text-sm font-semibold text-stone-800">Save Profile</p>
+              <div className="flex gap-2">
+                <button className="btn flex-1 bg-stone-100 text-stone-700 hover:bg-stone-200" onClick={() => setConfirmOpen(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary flex-1" onClick={confirmSave}>
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

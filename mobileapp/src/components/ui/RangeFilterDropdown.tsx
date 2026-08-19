@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { RangeFilter } from 'mock-data';
 import { colors, gap, radius } from '../../theme';
+import { EASE_QUAD, useReducedMotion } from '../../animations';
 import { useRangeFilter } from '../../data/RangeFilterContext';
 
 const OPTIONS: Array<{ value: RangeFilter; label: string }> = [
@@ -15,6 +16,18 @@ const OPTIONS: Array<{ value: RangeFilter; label: string }> = [
 export default function RangeFilterDropdown() {
   const { filter, range, setFilter } = useRangeFilter();
   const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!open) return;
+    if (reduced) {
+      anim.setValue(1);
+      return;
+    }
+    anim.setValue(0);
+    Animated.timing(anim, { toValue: 1, duration: 160, useNativeDriver: true, easing: EASE_QUAD }).start();
+  }, [open, anim, reduced]);
 
   return (
     <View style={styles.container}>
@@ -25,7 +38,18 @@ export default function RangeFilterDropdown() {
       {open && (
         <>
           <Pressable style={styles.backdrop} onPress={() => setOpen(false)} />
-          <View style={styles.list}>
+          <Animated.View
+            style={[
+              styles.list,
+              {
+                opacity: anim,
+                transform: [
+                  { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-4, 0] }) },
+                  { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }) },
+                ],
+              },
+            ]}
+          >
             {OPTIONS.map((o) => {
               const active = filter === o.value;
               return (
@@ -42,7 +66,7 @@ export default function RangeFilterDropdown() {
                 </Pressable>
               );
             })}
-          </View>
+          </Animated.View>
         </>
       )}
     </View>

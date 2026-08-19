@@ -12,6 +12,7 @@ import { RangeFilterProvider } from './data/RangeFilterContext';
 import { ShopNameProvider } from './data/ShopNameContext';
 import AppDrawer from './components/ui/AppDrawer';
 import BottomTabBar from './components/ui/BottomTabBar';
+import { ToastProvider } from './components/ui/Toast';
 
 import DashboardScreen from './features/dashboard/DashboardScreen';
 import SalesScreen from './features/sales/SalesScreen';
@@ -113,6 +114,7 @@ function Root() {
       <Stack.Navigator
         initialRouteName={authed ? 'Main' : 'Login'}
         screenOptions={{
+          animation: 'fade',
           headerStyle: { backgroundColor: colors.bg },
           headerTitleStyle: { fontWeight: '700', color: '#FDF6EC' },
           headerTintColor: '#FDF6EC',
@@ -138,7 +140,9 @@ export default function App() {
         <DataProvider>
           <RangeFilterProvider>
             <ShopNameProvider>
-              <Root />
+              <ToastProvider>
+                <Root />
+              </ToastProvider>
             </ShopNameProvider>
           </RangeFilterProvider>
         </DataProvider>

@@ -6,6 +6,7 @@ import { DataProvider } from './DataContext';
 import { AuthProvider, useAuth } from './AuthContext';
 import { ShopNameProvider } from './ShopNameContext';
 import Layout from '@/components/layout/Layout';
+import { ToastProvider } from '@/components/ui/Toast';
 import DashboardScreen from '@/features/dashboard/DashboardScreen';
 import SalesScreen from '@/features/sales/SalesScreen';
 import InventoryScreen from '@/features/inventory/InventoryScreen';
@@ -76,7 +77,9 @@ export default function App() {
         <ShopNameProvider>
           <RangeFilterProvider>
             <DataProvider>
-              <Gate />
+              <ToastProvider>
+                <Gate />
+              </ToastProvider>
             </DataProvider>
           </RangeFilterProvider>
         </ShopNameProvider>

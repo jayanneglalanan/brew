@@ -1,12 +1,46 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import { SkeletonPage } from '@/components/ui/Skeleton';
 import { useAuth } from '@/app/AuthContext';
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
+function PageLoader() {
+  const [loading, setLoading] = useState(true);
+  const reduced = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (reduced) {
+      setLoading(false);
+      return;
+    }
+    const t = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(t);
+  }, [reduced]);
+
+  if (loading) return <SkeletonPage />;
+  return (
+    <div className="animate-page-in">
+      <Outlet />
+    </div>
+  );
+}
 
 export default function Layout() {
   const { logout } = useAuth();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const { pathname } = useLocation();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -42,7 +76,7 @@ export default function Layout() {
         <Topbar />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="mx-auto max-w-7xl">
-            <Outlet />
+            <PageLoader key={pathname} />
           </div>
         </main>
       </div>

@@ -1,6 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, gap, radius } from '../../theme';
 import { signed } from 'mock-data';
+import { EASE_CUBIC, useReducedMotion } from '../../animations';
 
 const ACCENTS: Record<string, { bg: string; fg: string }> = {
   brand: { bg: colors.brandSoft, fg: colors.brandDark },
@@ -14,25 +16,47 @@ const ACCENTS: Record<string, { bg: string; fg: string }> = {
 export default function StatCard({
   label,
   value,
+  count,
+  format,
   icon,
   delta,
   accent = 'brand',
   style,
 }: {
   label: string;
-  value: string;
+  value?: string;
+  count?: number;
+  format?: (n: number) => string;
   icon?: string;
   delta?: number;
   accent?: string;
-  style?: object;
+  style?: StyleProp<ViewStyle>;
 }) {
   const a = ACCENTS[accent] ?? ACCENTS.brand;
+  const reduced = useReducedMotion();
+  const [display, setDisplay] = useState<string>(count !== undefined ? (format ? format(0) : '0') : (value ?? ''));
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (count === undefined) return;
+    if (reduced) {
+      setDisplay(format ? format(count) : Math.round(count).toLocaleString());
+      return;
+    }
+    anim.setValue(0);
+    const id = anim.addListener(({ value: v }) => {
+      setDisplay(format ? format(v) : Math.round(v).toLocaleString());
+    });
+    Animated.timing(anim, { toValue: count, duration: 700, easing: EASE_CUBIC, useNativeDriver: false }).start();
+    return () => anim.removeListener(id);
+  }, [count, format, anim, reduced]);
+
   return (
     <View style={[styles.card, style]}>
       <View style={styles.row}>
         <View style={styles.textWrap}>
           <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value} numberOfLines={1}>{value}</Text>
+          <Text style={styles.value} numberOfLines={1}>{display}</Text>
           {delta !== undefined ? (
             <Text style={[styles.delta, { color: delta >= 0 ? colors.good : colors.critical }]}>
               {signed(delta)}

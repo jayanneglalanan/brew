@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../data/AuthContext';
 import { useShopName } from '../../data/ShopNameContext';
@@ -7,11 +7,14 @@ import { DEMO_ACCOUNTS, loadEmail, saveEmail, savePassword } from '../../data/au
 import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import FormField from '../../components/ui/FormField';
+import AnimatedModal from '../../components/ui/AnimatedModal';
+import { useToast } from '../../components/ui/Toast';
 import { colors, gap, radius } from '../../theme';
 
 export default function SettingsScreen() {
   const { user, updateProfile } = useAuth();
   const { shopName, setShopName, businessHours, setBusinessHours, logoImage, setLogoImage } = useShopName();
+  const { toast } = useToast();
 
   const demoEmail = useMemo(() => DEMO_ACCOUNTS.find((a) => a.user.id === user?.id)?.email ?? '', [user]);
 
@@ -84,6 +87,7 @@ export default function SettingsScreen() {
     Promise.all(tasks).then(() => {
       setConfirmOpen(false);
       setPasswordDraft('');
+      toast('Profile saved');
     });
   };
 
@@ -155,21 +159,17 @@ export default function SettingsScreen() {
         </Card>
       ) : null}
 
-      <Modal visible={confirmOpen} animationType="fade" transparent onRequestClose={() => setConfirmOpen(false)}>
-        <View style={styles.modalWrap}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Save Profile</Text>
-            <View style={styles.modalActions}>
-              <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setConfirmOpen(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </Pressable>
-              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={confirmSave}>
-                <Text style={styles.saveText}>Save</Text>
-              </Pressable>
-            </View>
-          </View>
+      <AnimatedModal visible={confirmOpen} onClose={() => setConfirmOpen(false)} panelStyle={{ width: '78%', maxWidth: 300, alignSelf: 'center' }}>
+        <Text style={styles.modalTitle}>Save Profile</Text>
+        <View style={styles.modalActions}>
+          <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setConfirmOpen(false)}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Pressable>
+          <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={confirmSave}>
+            <Text style={styles.saveText}>Save</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </AnimatedModal>
     </Screen>
   );
 }

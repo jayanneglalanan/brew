@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, type LucideIcon } from 'lucide-react-native';
 import { colors, gap, radius } from '../../theme';
+import { EASE_SPRING, useReducedMotion } from '../../animations';
+import PressableScale from './PressableScale';
 
 interface FabOption {
   label: string;
@@ -13,8 +15,20 @@ interface FabOption {
 export default function Fab({ options }: { options: FabOption[] }) {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
+  const anim = useRef(new Animated.Value(0)).current;
 
   const close = () => setOpen(false);
+
+  useEffect(() => {
+    if (!open) return;
+    if (reduced) {
+      anim.setValue(1);
+      return;
+    }
+    anim.setValue(0);
+    Animated.timing(anim, { toValue: 1, duration: 180, useNativeDriver: true, easing: EASE_SPRING }).start();
+  }, [open, anim, reduced]);
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -22,27 +36,34 @@ export default function Fab({ options }: { options: FabOption[] }) {
       <View pointerEvents="box-none" style={[styles.column, { bottom: Math.max(insets.bottom, 0) + 20 }]}>
         {open && (
           <View style={styles.menu} pointerEvents="box-none">
-            {options.map((o) => (
-              <Pressable
+            {options.map((o, i) => (
+              <Animated.View
                 key={o.label}
-                style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
-                onPress={() => {
-                  close();
-                  o.onPress();
+                style={{
+                  opacity: anim,
+                  transform: [
+                    { translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [i === 0 ? 10 : 4, 0] }) },
+                    { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) },
+                  ],
                 }}
               >
-                <o.icon size={17} color={colors.brand} strokeWidth={2} />
-                <Text style={styles.optionLabel}>{o.label}</Text>
-              </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+                  onPress={() => {
+                    close();
+                    o.onPress();
+                  }}
+                >
+                  <o.icon size={17} color={colors.brand} strokeWidth={2} />
+                  <Text style={styles.optionLabel}>{o.label}</Text>
+                </Pressable>
+              </Animated.View>
             ))}
           </View>
         )}
-        <Pressable
-          onPress={() => setOpen((v) => !v)}
-          style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        >
+        <PressableScale onPress={() => setOpen((v) => !v)} style={styles.fab}>
           <Plus size={26} color="#fff" strokeWidth={2.4} />
-        </Pressable>
+        </PressableScale>
       </View>
     </View>
   );
@@ -69,7 +90,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 10,
   },
-  fabPressed: { opacity: 0.9, transform: [{ scale: 0.97 }] },
   menu: {
     marginBottom: gap.sm,
     alignItems: 'flex-end',

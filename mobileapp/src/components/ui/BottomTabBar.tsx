@@ -1,9 +1,11 @@
-import { Pressable, StyleSheet, Text, useWindowDimensions, View, Platform } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, useWindowDimensions, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChartNoAxesColumnIncreasing, FileChartColumn, HandCoins, Package } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors } from '../../theme';
+import { DUR, useReducedMotion } from '../../animations';
 
 const ACTIVE = colors.bg;
 const ACTIVE_ICON = '#FFFFFF';
@@ -18,6 +20,60 @@ const TABS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: 'Inventory', label: 'Inventory', icon: Package },
   { name: 'Reports', label: 'Reports', icon: FileChartColumn },
 ];
+
+function TabItem({
+  icon,
+  label,
+  focused,
+  onPress,
+  size,
+}: {
+  icon: LucideIcon;
+  label: string;
+  focused: boolean;
+  onPress: () => void;
+  size: { icon: number; label: number; gap: number; boxPad: number };
+}) {
+  const reduced = useReducedMotion();
+  const scale = useRef(new Animated.Value(focused ? 1.12 : 1)).current;
+  const pillOpacity = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  const pillScale = useRef(new Animated.Value(focused ? 1 : 0.85)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      scale.setValue(focused ? 1.12 : 1);
+      pillOpacity.setValue(focused ? 1 : 0);
+      pillScale.setValue(focused ? 1 : 0.85);
+      return;
+    }
+    Animated.spring(scale, { toValue: focused ? 1.12 : 1, useNativeDriver: true, speed: 28, bounciness: 6 }).start();
+    Animated.timing(pillOpacity, { toValue: focused ? 1 : 0, duration: DUR.base, useNativeDriver: true }).start();
+    Animated.spring(pillScale, { toValue: focused ? 1 : 0.85, useNativeDriver: true, speed: 28, bounciness: 6 }).start();
+  }, [focused, reduced, scale, pillOpacity, pillScale]);
+
+  const Icon = icon;
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.item, pressed && { transform: [{ scale: 0.96 }] }]}>
+      <View style={[styles.iconSlot, { padding: size.boxPad }]}>
+        <Animated.View style={[styles.pillBg, { opacity: pillOpacity, transform: [{ scale: pillScale }] }]} />
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <Icon size={size.icon} color={focused ? ACTIVE_ICON : INACTIVE_ICON} strokeWidth={focused ? 2.2 : 2} />
+        </Animated.View>
+      </View>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        style={[
+          styles.label,
+          { fontSize: size.label, marginTop: size.gap, color: focused ? ACTIVE : INACTIVE_LABEL, fontWeight: focused ? '600' : '500' },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -46,31 +102,17 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           const tab = TABS.find((t) => t.name === route.name);
           const isFocused = state.index === index;
           return (
-            <Pressable
+            <TabItem
               key={route.key}
+              icon={tab?.icon ?? Package}
+              label={tab?.label ?? route.name}
+              focused={isFocused}
+              size={size}
               onPress={() => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
                 if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name);
               }}
-              style={({ pressed }) => [styles.item, pressed && { transform: [{ scale: 0.97 }] }]}
-            >
-              <View style={[styles.iconBox, { padding: size.boxPad }, isFocused && styles.iconBoxActive]}>
-                {tab?.icon ? (
-                  <tab.icon size={size.icon} color={isFocused ? ACTIVE_ICON : INACTIVE_ICON} strokeWidth={isFocused ? 2.2 : 2} />
-                ) : null}
-              </View>
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}
-                style={[
-                  styles.label,
-                  { fontSize: size.label, marginTop: size.gap, color: isFocused ? ACTIVE : INACTIVE_LABEL, fontWeight: isFocused ? '600' : '500' },
-                ]}
-              >
-                {tab?.label ?? route.name}
-              </Text>
-            </Pressable>
+            />
           );
         })}
       </View>
@@ -103,12 +145,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBox: {
+  iconSlot: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 14,
   },
-  iconBoxActive: {
+  pillBg: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderRadius: 14,
     backgroundColor: ACTIVE_SOFT,
     shadowColor: ACTIVE,
     shadowOffset: { width: 0, height: 4 },

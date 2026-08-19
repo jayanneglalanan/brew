@@ -54,21 +54,21 @@ export default function LoginScreen() {
     <div className="login-layout">
       <aside className="login-brand">
         <div className="login-brand-inner">
-          <div className="login-brand-tile">
+          <div className="login-brand-tile animate-logo-in">
             {logoImage ? <img src={logoImage} alt="logo" className="h-12 w-12 rounded-2xl object-cover" /> : '☕'}
           </div>
-          <h1 className="login-brand-name">{shopName}</h1>
-          <p className="login-brand-tagline">Good Coffee, Good Day</p>
+          <h1 className="login-brand-name animate-fade-up">{shopName}</h1>
+          <p className="login-brand-tagline animate-fade-up">Good Coffee, Good Day</p>
         </div>
       </aside>
 
       <main className="login-form-col">
-        <div className="login-mobile-brand">
+        <div className="login-mobile-brand animate-logo-in">
           <span className="login-mobile-tile">{logoImage ? <img src={logoImage} alt="logo" className="h-5 w-5 rounded object-cover" /> : '☕'}</span>
           <span>{shopName}</span>
         </div>
 
-        <div className="login-panel w-full max-w-[500px] px-7 pb-8 pt-7 sm:px-9">
+        <div className="login-panel w-full max-w-[500px] px-7 pb-8 pt-7 sm:px-9 animate-fade-up">
           <h1 className="text-center text-[32px] font-bold leading-tight" style={{ color: 'var(--login-text)' }}>
             Welcome back
           </h1>

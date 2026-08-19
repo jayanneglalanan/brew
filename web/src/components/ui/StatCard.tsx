@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
 import { signed } from 'mock-data';
 
 interface StatCardProps {
   label: string;
-  value: string;
+  value?: string;
+  count?: number;
+  format?: (n: number) => string;
   icon?: string;
   delta?: number;
   deltaLabel?: string;
@@ -18,13 +21,36 @@ const ACCENTS: Record<string, string> = {
   slate: 'bg-stone-100 text-stone-700',
 };
 
-export default function StatCard({ label, value, icon, delta, deltaLabel, accent = 'brand' }: StatCardProps) {
+function useCountUp(target: number, duration = 700): number {
+  const [value, setValue] = useState(0);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setValue(target * eased);
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return value;
+}
+
+export default function StatCard({ label, value, count, format, icon, delta, deltaLabel, accent = 'brand' }: StatCardProps) {
+  const animated = useCountUp(count ?? 0);
+  const display =
+    count !== undefined ? (format ? format(animated) : Math.round(animated).toLocaleString()) : (value ?? '');
+
   return (
     <div className="card card-pad">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="label">{label}</p>
-          <p className="mt-1.5 truncate text-2xl font-bold text-stone-900">{value}</p>
+          <p className="mt-1.5 truncate text-2xl font-bold text-stone-900">{display}</p>
           {delta !== undefined && (
             <p className={`mt-1 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {signed(delta)} {deltaLabel ?? 'vs prev period'}

@@ -73,6 +73,119 @@ body {
     overflow: visible;
     text-overflow: clip;
   }
+  .btn {
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+}
+
+/* ---------- Motion system ---------- */
+@keyframes kf-pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kf-cardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kf-backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes kf-panelIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes kf-logoIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes kf-rowIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kf-rowOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateX(10px); }
+}
+@keyframes kf-pulseOnce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes kf-menuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kf-toastIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes kf-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.animate-page-in { animation: kf-pageIn 0.22s ease-out both; }
+.animate-fade-up { animation: kf-cardIn 0.26s ease-out both; }
+.animate-backdrop { animation: kf-backdropIn 0.18s ease-out both; }
+.animate-panel-in { animation: kf-panelIn 0.2s ease-out both; }
+.animate-logo-in { animation: kf-logoIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-row-in { animation: kf-rowIn 0.24s ease-out both; }
+.animate-row-out { animation: kf-rowOut 0.2s ease-in both; }
+.animate-menu-in { animation: kf-menuIn 0.16s ease-out both; }
+.animate-toast-in { animation: kf-toastIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pulse-once { animation: kf-pulseOnce 0.9s ease-out 1; }
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(61, 48, 42, 0.08);
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  background-size: 200% 100%;
+  animation: kf-shimmer 1.4s linear infinite;
+}
+
+.animate-page-in .card { animation: kf-cardIn 0.26s ease-out both; }
+.animate-page-in .animate-panel-in { animation: kf-panelIn 0.2s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .float-label,
+  .float-input,
+  .float-lead,
+  .login-btn,
+  .btn {
+    transition: none;
+  }
+  .btn:active {
+    transform: none;
+  }
+  .animate-page-in,
+  .animate-fade-up,
+  .animate-backdrop,
+  .animate-panel-in,
+  .animate-logo-in,
+  .animate-row-in,
+  .animate-row-out,
+  .animate-menu-in,
+  .animate-toast-in,
+  .pulse-once,
+  .animate-page-in .card,
+  .animate-page-in .animate-panel-in {
+    animation: none;
+  }
+  .skeleton::after {
+    animation: none;
+    background: none;
+  }
 }
 
 .login-panel {

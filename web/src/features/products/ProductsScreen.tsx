@@ -17,6 +17,8 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import Dropdown from '@/components/ui/Dropdown';
+import { useToast } from '@/components/ui/Toast';
 import Table, { type Column } from '@/components/ui/Table';
 import { PageHeader, Tabs } from '@/components/ui/Page';
 import { ProgressBar } from '@/components/charts';
@@ -35,6 +37,7 @@ const EMPTY_FORM: Omit<Product, 'id'> = { name: '', category: 'Coffee', price: 0
 
 export default function ProductsScreen() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isManager = user?.role === 'manager';
   const tabs = isManager ? TABS.filter((t) => t.value !== 'profitability') : TABS;
   const { products, categories, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
@@ -44,6 +47,7 @@ export default function ProductsScreen() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<Omit<Product, 'id'>>(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [catForm, setCatForm] = useState({ name: '', icon: '' });
@@ -69,7 +73,7 @@ export default function ProductsScreen() {
           { header: 'Margin', key: 'margin', render: (r) => <b>{formatPercent(margin(r.cost, r.price))}</b> },
         ] as Column<Product>[])),
     { header: 'Status', key: 'status', render: (r) => (
-        <button onClick={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })} title="Toggle availability">
+        <button onClick={() => { updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' }); toast(`${r.name} marked ${r.status === 'available' ? 'Sold Out' : 'Available'}`); }} title="Toggle availability">
           <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
         </button>
       ) },
@@ -94,8 +98,13 @@ export default function ProductsScreen() {
   const save = () => {
     if (!form.name.trim()) return;
     const payload = { ...form, name: form.name.trim(), image: form.image?.trim() || undefined };
-    if (editing) updateProduct({ ...editing, ...payload });
-    else addProduct(payload);
+    if (editing) {
+      updateProduct({ ...editing, ...payload });
+      toast(`${editing.name} updated`);
+    } else {
+      addProduct(payload);
+      toast(`${payload.name} added to the menu`);
+    }
     setModalOpen(false);
   };
 
@@ -130,13 +139,23 @@ export default function ProductsScreen() {
       setCatError('Category name is required.');
       return;
     }
-    if (editingCategory) updateCategory({ ...editingCategory, name: catForm.name.trim(), icon: catForm.icon.trim() || editingCategory.icon });
-    else addCategory(catForm.name.trim(), catForm.icon.trim());
+    if (editingCategory) {
+      updateCategory({ ...editingCategory, name: catForm.name.trim(), icon: catForm.icon.trim() || editingCategory.icon });
+      toast(`${editingCategory.name} updated`);
+    } else {
+      addCategory(catForm.name.trim(), catForm.icon.trim());
+      toast(`${catForm.name.trim()} category added`);
+    }
     setCategoryModalOpen(false);
   };
   const handleDeleteCategory = (c: Category) => {
     const ok = deleteCategory(c.id);
-    if (!ok) setCatError(`Cannot delete "${c.name}" — it still has products assigned to it.`);
+    if (!ok) {
+      setCatError(`Cannot delete "${c.name}" — it still has products assigned to it.`);
+      toast(`Cannot delete "${c.name}" — it still has products`, 'error');
+    } else {
+      toast(`${c.name} category deleted`);
+    }
   };
 
   const profitabilityRows = products.map((p) => {
@@ -170,7 +189,7 @@ export default function ProductsScreen() {
       {tab === 'products' && (
         <Card title="Product List" subtitle="Click a status badge to toggle availability"
           action={<input className="input w-56" placeholder="Search products…" value={search} onChange={(e) => setSearch(e.target.value)} />}>
-          <Table columns={productColumns} rows={filtered} rowKey={(r) => r.id} />
+          <Table columns={productColumns} rows={filtered} rowKey={(r) => r.id} removingKeys={removingKeys} />
         </Card>
       )}
 
@@ -246,16 +265,24 @@ export default function ProductsScreen() {
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Category">
-              <select className="input w-full" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as CategoryName })}>
-                {categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-              </select>
+              <Dropdown
+                value={form.category}
+                onChange={(v) => setForm({ ...form, category: v })}
+                options={categories.map((c) => ({ value: c.name as CategoryName, label: c.name }))}
+                className="w-full"
+              />
             </Field>
             <Field label="Availability">
-              <select className="input w-full" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ProductStatus })}>
-                <option value="available">Available</option>
-                <option value="sold-out">Sold Out</option>
-                <option value="hidden">Hidden</option>
-              </select>
+              <Dropdown
+                value={form.status}
+                onChange={(v) => setForm({ ...form, status: v as ProductStatus })}
+                options={[
+                  { value: 'available', label: 'Available' },
+                  { value: 'sold-out', label: 'Sold Out' },
+                  { value: 'hidden', label: 'Hidden' },
+                ]}
+                className="w-full"
+              />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -294,8 +321,19 @@ export default function ProductsScreen() {
         title="Delete product"
         message={`Remove "${deleteTarget?.name}" from the menu? This cannot be undone.`}
         onConfirm={() => {
-          if (deleteTarget) deleteProduct(deleteTarget.id);
+          const target = deleteTarget;
           setDeleteTarget(null);
+          if (!target) return;
+          setRemovingKeys((prev) => new Set(prev).add(target.id));
+          setTimeout(() => {
+            deleteProduct(target.id);
+            setRemovingKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(target.id);
+              return next;
+            });
+            toast(`${target.name} deleted`);
+          }, 200);
         }}
         onCancel={() => setDeleteTarget(null)}
       />

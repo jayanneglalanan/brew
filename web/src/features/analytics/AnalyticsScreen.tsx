@@ -11,6 +11,7 @@ import {
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
 import Card from '@/components/ui/Card';
+import Dropdown from '@/components/ui/Dropdown';
 import Table, { type Column } from '@/components/ui/Table';
 import { PageHeader, Tabs } from '@/components/ui/Page';
 import { Donut, PeakBar, ProgressBar } from '@/components/charts';
@@ -61,11 +62,7 @@ export default function AnalyticsScreen() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <Tabs tabs={TABS} active={tab} onChange={setTab} />
         {tab === 'topselling' && (
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as TopProductsSort)} className="input">
-            {SORT_OPTIONS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
+          <Dropdown value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} className="w-48" />
         )}
       </div>
 

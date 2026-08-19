@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Lock, Mail } from 'lucide-react-native';
@@ -9,6 +9,8 @@ import { resolveUser, DEMO_ACCOUNTS } from '../../data/auth';
 import { useAuth } from '../../data/AuthContext';
 import { useShopName } from '../../data/ShopNameContext';
 import { loginColors as C } from './tokens';
+import { EASE_CUBIC, useReducedMotion } from '../../animations';
+import PressableScale from '../../components/ui/PressableScale';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -24,6 +26,21 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const reduced = useReducedMotion();
+  const brandOpacity = useRef(new Animated.Value(0)).current;
+  const brandScale = useRef(new Animated.Value(0.94)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      brandOpacity.setValue(1);
+      brandScale.setValue(1);
+      return;
+    }
+    Animated.parallel([
+      Animated.timing(brandOpacity, { toValue: 1, duration: 420, useNativeDriver: true, easing: EASE_CUBIC }),
+      Animated.spring(brandScale, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 7 }),
+    ]).start();
+  }, [brandOpacity, brandScale, reduced]);
 
   const finishLogin = (user: { id: string; name: string; role: string }) => {
     setError('');
@@ -70,13 +87,13 @@ export default function LoginScreen({ navigation }: Props) {
           bounces={false}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandMark}>
+          <Animated.View style={[styles.brandMark, { opacity: brandOpacity, transform: [{ scale: brandScale }] }]}>
             <View style={styles.brandTile}>
               {logoImage ? <Image source={{ uri: logoImage }} style={styles.brandTileImg} /> : <Text style={styles.brandEmoji}>☕</Text>}
             </View>
             <Text style={styles.brand}>{shopName}</Text>
             <Text style={styles.subtitle}>Good Coffee, Good Day</Text>
-          </View>
+          </Animated.View>
 
           <View style={styles.form}>
             <FloatingInput
@@ -112,8 +129,8 @@ export default function LoginScreen({ navigation }: Props) {
               </Pressable>
             </View>
 
-            <Pressable
-              style={({ pressed }) => [styles.button, pressed && !loading && styles.buttonPressed, loading && styles.buttonDisabled]}
+            <PressableScale
+              style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
               accessibilityRole="button"
@@ -126,7 +143,7 @@ export default function LoginScreen({ navigation }: Props) {
               ) : (
                 <Text style={styles.buttonText}>Login</Text>
               )}
-            </Pressable>
+            </PressableScale>
           </View>
 
           <View style={styles.demo}>
@@ -208,7 +225,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 4,
   },
-  buttonPressed: { opacity: 0.92, transform: [{ scale: 0.98 }] },
   buttonDisabled: { opacity: 0.85 },
   buttonText: { color: C.surface, fontSize: 15, fontWeight: '600', letterSpacing: 0.4 },
   demo: { alignItems: 'center', marginTop: 16, width: '100%', maxWidth: 420, alignSelf: 'center' },

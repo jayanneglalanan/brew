@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Pagination from './Pagination';
 import { colors, gap } from '../../theme';
+import { DUR, EASE_QUAD, useReducedMotion } from '../../animations';
 
 export interface Column<T> {
   header: string;
@@ -25,26 +26,68 @@ function CellContent({ children, lines }: { children: React.ReactNode; lines: nu
   return <>{children}</>;
 }
 
+function AnimatedRow({ animate, fadeOut, children }: { animate: boolean; fadeOut: boolean; children: React.ReactNode }) {
+  const reduced = useReducedMotion();
+  const opacity = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (fadeOut) {
+      Animated.timing(opacity, { toValue: 0, duration: DUR.base, useNativeDriver: true, easing: EASE_QUAD }).start();
+      return;
+    }
+    if (animate) {
+      if (reduced) {
+        opacity.setValue(1);
+        translateY.setValue(0);
+        return;
+      }
+      opacity.setValue(0);
+      translateY.setValue(4);
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 1, duration: DUR.base, useNativeDriver: true, easing: EASE_QUAD }),
+        Animated.timing(translateY, { toValue: 0, duration: DUR.base, useNativeDriver: true, easing: EASE_QUAD }),
+      ]).start();
+    }
+  }, [animate, fadeOut, opacity, translateY, reduced]);
+
+  return <Animated.View style={{ opacity, transform: [{ translateY }] }}>{children}</Animated.View>;
+}
+
 export default function Table<T>({
   columns,
   rows,
   rowKey,
   title,
   pageSize = 10,
+  fadingKeys,
 }: {
   columns: Column<T>[];
   rows: T[];
   rowKey: (row: T) => string;
   title?: string;
   pageSize?: number;
+  fadingKeys?: ReadonlySet<string>;
 }) {
   const { width: winWidth } = useWindowDimensions();
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const seen = useRef<Set<string> | null>(null);
+  const [animKeys, setAnimKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
+
+  if (seen.current === null) {
+    seen.current = new Set(rows.map((r) => rowKey(r)));
+  } else {
+    const newKeys = rows.map((r) => rowKey(r)).filter((k) => !seen.current!.has(k));
+    if (newKeys.length > 0) {
+      newKeys.forEach((k) => seen.current!.add(k));
+      setAnimKeys((prev) => new Set([...prev, ...newKeys]));
+    }
+  }
 
   const start = (page - 1) * pageSize;
   const visible = rows.slice(start, start + pageSize);
@@ -66,18 +109,22 @@ export default function Table<T>({
           </View>
           {visible.map((row, i) => {
             const key = rowKey(row);
+            const animate = animKeys.has(key);
+            const fadeOut = fadingKeys?.has(key) ?? false;
             return (
-              <View key={key} style={[styles.row, i === visible.length - 1 && styles.last]}>
-                {columns.map((c) => (
-                  <View key={c.key} style={[styles.cell, { flex: c.width ?? 1 }]}>
-                    {c.render ? (
-                      <CellContent lines={c.lines ?? 1}>{c.render(row)}</CellContent>
-                    ) : (
-                      <CellContent lines={c.lines ?? 1}>{String((row as Record<string, unknown>)[c.key] ?? '')}</CellContent>
-                    )}
-                  </View>
-                ))}
-              </View>
+              <AnimatedRow key={key} animate={animate} fadeOut={fadeOut}>
+                <View style={[styles.row, i === visible.length - 1 && styles.last]}>
+                  {columns.map((c) => (
+                    <View key={c.key} style={[styles.cell, { flex: c.width ?? 1 }]}>
+                      {c.render ? (
+                        <CellContent lines={c.lines ?? 1}>{c.render(row)}</CellContent>
+                      ) : (
+                        <CellContent lines={c.lines ?? 1}>{String((row as Record<string, unknown>)[c.key] ?? '')}</CellContent>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </AnimatedRow>
             );
           })}
         </View>

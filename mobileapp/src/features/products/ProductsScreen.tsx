@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Coffee, FolderPlus } from 'lucide-react-native';
 import {
   formatPercent,
@@ -21,6 +21,9 @@ import Badge from '../../components/ui/Badge';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import Fab from '../../components/ui/Fab';
 import FormField from '../../components/ui/FormField';
+import AnimatedModal from '../../components/ui/AnimatedModal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { useToast } from '../../components/ui/Toast';
 import Table, { type Column } from '../../components/ui/Table';
 import { colors, gap, radius } from '../../theme';
 
@@ -40,11 +43,15 @@ export default function ProductsScreen() {
   const isManager = user?.role === 'manager';
   const tabs = isManager ? TABS.filter((t) => t.value !== 'profitability') : TABS;
   const { products, categories, transactions, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory } = useData();
+  const { toast } = useToast();
   const [tab, setTab] = useState('products');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<Form>({ name: '', category: 'Coffee', price: 0, cost: 0, ingredients: [], status: 'available', image: '' });
+  const [removingKeys, setRemovingKeys] = useState<ReadonlySet<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [deleteCat, setDeleteCat] = useState<Category | null>(null);
 
   const range = useMemo(() => getDateRange('week'), []);
   const top = useMemo(() => getTopProducts(transactions, products, range, 'sales', 100), [products, transactions, range]);
@@ -74,7 +81,10 @@ export default function ProductsScreen() {
           { header: 'Margin', key: 'margin', width: 1.05, lines: 1, render: (r) => formatPercent(margin(r.cost, r.price)) },
         ] as Column<Product>[])),
     { header: 'Status', key: 'status', width: 1.7, lines: 1, render: (r) => (
-        <Pressable onPress={() => updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' })}>
+        <Pressable onPress={() => {
+          updateProduct({ ...r, status: r.status === 'available' ? 'sold-out' : 'available' });
+          toast(r.status === 'available' ? 'Marked as sold out' : 'Marked as available');
+        }}>
           <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
         </Pressable>
       ) },
@@ -102,13 +112,9 @@ export default function ProductsScreen() {
     if (editing) updateProduct({ ...editing, ...payload });
     else addProduct(payload);
     setModalOpen(false);
+    toast(editing ? 'Product updated' : 'Product added');
   };
-  const confirmDelete = (p: Product) => {
-    Alert.alert('Delete product', `Remove "${p.name}" from the menu?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteProduct(p.id) },
-    ]);
-  };
+  const confirmDelete = (p: Product) => setDeleteTarget(p);
 
   const openCategoryAdd = () => {
     setEditingCategory(null);
@@ -130,20 +136,9 @@ export default function ProductsScreen() {
     if (editingCategory) updateCategory({ ...editingCategory, name: catForm.name.trim(), icon: catForm.icon.trim() || editingCategory.icon });
     else addCategory(catForm.name.trim(), catForm.icon.trim());
     setCategoryModalOpen(false);
+    toast(editingCategory ? 'Category updated' : 'Category added');
   };
-  const handleDeleteCategory = (c: Category) => {
-    Alert.alert('Delete category', `Remove "${c.name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          const ok = deleteCategory(c.id);
-          if (!ok) setCatError(`Cannot delete "${c.name}" — it still has products assigned to it.`);
-        },
-      },
-    ]);
-  };
+  const handleDeleteCategory = (c: Category) => setDeleteCat(c);
 
   const profRows = products.map((p) => {
     const sold = topById.get(p.id)?.sold ?? 0;
@@ -180,7 +175,7 @@ export default function ProductsScreen() {
       {tab === 'products' && (
         <Card title="Product List" subtitle="Tap status to toggle availability">
           <FormField label="" placeholder="Search products…" value={search} onChangeText={setSearch} />
-          <Table columns={productCols} rows={filtered} rowKey={(r) => r.id} />
+          <Table columns={productCols} rows={filtered} rowKey={(r) => r.id} fadingKeys={removingKeys} />
         </Card>
       )}
 
@@ -224,72 +219,95 @@ export default function ProductsScreen() {
         </Card>
       )}
 
-      <Modal visible={modalOpen} animationType="slide" transparent onRequestClose={() => setModalOpen(false)}>
-        <View style={styles.modalWrap}>
-          <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>{editing ? `Edit ${editing.name}` : 'Add Product'}</Text>
-              <FormField label="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="e.g. Iced Vanilla Latte" />
-              <Text style={styles.miniLabel}>Category</Text>
-              <View style={styles.chipRow}>
-                {categoryNames.map((c) => (
-                  <Pressable key={c} onPress={() => setForm({ ...form, category: c as CategoryName })} style={[styles.chip, form.category === c && styles.chipActive]}>
-                    <Text style={[styles.chipText, form.category === c && styles.chipTextActive]}>{c}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <FormField label="Price (₱)" keyboardType="numeric" value={form.price ? String(form.price) : ''} onChangeText={(v) => setForm({ ...form, price: Number(v) })} />
-                </View>
-                <View style={{ flex: 1, marginLeft: gap.md }}>
-                  <FormField label="Cost (₱)" keyboardType="numeric" value={form.cost ? String(form.cost) : ''} onChangeText={(v) => setForm({ ...form, cost: Number(v) })} />
-                </View>
-              </View>
-              <Text style={styles.miniLabel}>Availability</Text>
-              <View style={styles.chipRow}>
-                {(['available', 'sold-out', 'hidden'] as ProductStatus[]).map((s) => (
-                  <Pressable key={s} onPress={() => setForm({ ...form, status: s })} style={[styles.chip, form.status === s && styles.chipActive]}>
-                    <Text style={[styles.chipText, form.status === s && styles.chipTextActive]}>{STATUS_LABEL[s]}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={styles.modalActions}>
-                <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </Pressable>
-                <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={save} disabled={!form.name.trim()}>
-                  <Text style={styles.saveText}>Save</Text>
-                </Pressable>
-              </View>
-              {editing ? (
-                <Pressable onPress={() => { setModalOpen(false); confirmDelete(editing); }}>
-                  <Text style={styles.deleteText}>Delete product</Text>
-                </Pressable>
-              ) : null}
+      <AnimatedModal visible={modalOpen} onClose={() => setModalOpen(false)}>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <Text style={styles.modalTitle}>{editing ? `Edit ${editing.name}` : 'Add Product'}</Text>
+          <FormField label="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="e.g. Iced Vanilla Latte" />
+          <Text style={styles.miniLabel}>Category</Text>
+          <View style={styles.chipRow}>
+            {categoryNames.map((c) => (
+              <Pressable key={c} onPress={() => setForm({ ...form, category: c as CategoryName })} style={[styles.chip, form.category === c && styles.chipActive]}>
+                <Text style={[styles.chipText, form.category === c && styles.chipTextActive]}>{c}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <FormField label="Price (₱)" keyboardType="numeric" value={form.price ? String(form.price) : ''} onChangeText={(v) => setForm({ ...form, price: Number(v) })} />
             </View>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <Modal visible={categoryModalOpen} animationType="slide" transparent onRequestClose={() => setCategoryModalOpen(false)}>
-        <View style={styles.modalWrap}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>{editingCategory ? `Edit ${editingCategory.name}` : 'Add Category'}</Text>
-            <FormField label="Category Name" value={catForm.name} onChangeText={(name) => setCatForm({ ...catForm, name })} placeholder="e.g. Merch" />
-            <FormField label="Icon (emoji)" value={catForm.icon} onChangeText={(icon) => setCatForm({ ...catForm, icon })} placeholder="e.g. 🛍️" />
-            {catError ? <Text style={{ color: colors.critical, fontSize: 12 }}>{catError}</Text> : null}
-            <View style={styles.modalActions}>
-              <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setCategoryModalOpen(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </Pressable>
-              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveCategory}>
-                <Text style={styles.saveText}>Save</Text>
-              </Pressable>
+            <View style={{ flex: 1, marginLeft: gap.md }}>
+              <FormField label="Cost (₱)" keyboardType="numeric" value={form.cost ? String(form.cost) : ''} onChangeText={(v) => setForm({ ...form, cost: Number(v) })} />
             </View>
           </View>
+          <Text style={styles.miniLabel}>Availability</Text>
+          <View style={styles.chipRow}>
+            {(['available', 'sold-out', 'hidden'] as ProductStatus[]).map((s) => (
+              <Pressable key={s} onPress={() => setForm({ ...form, status: s })} style={[styles.chip, form.status === s && styles.chipActive]}>
+                <Text style={[styles.chipText, form.status === s && styles.chipTextActive]}>{STATUS_LABEL[s]}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.modalActions}>
+            <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={save} disabled={!form.name.trim()}>
+              <Text style={styles.saveText}>Save</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </AnimatedModal>
+
+      <AnimatedModal visible={categoryModalOpen} onClose={() => setCategoryModalOpen(false)}>
+        <Text style={styles.modalTitle}>{editingCategory ? `Edit ${editingCategory.name}` : 'Add Category'}</Text>
+        <FormField label="Category Name" value={catForm.name} onChangeText={(name) => setCatForm({ ...catForm, name })} placeholder="e.g. Merch" />
+        <FormField label="Icon (emoji)" value={catForm.icon} onChangeText={(icon) => setCatForm({ ...catForm, icon })} placeholder="e.g. 🛍️" />
+        {catError ? <Text style={{ color: colors.critical, fontSize: 12 }}>{catError}</Text> : null}
+        <View style={styles.modalActions}>
+          <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setCategoryModalOpen(false)}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Pressable>
+          <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveCategory}>
+            <Text style={styles.saveText}>Save</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </AnimatedModal>
+
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title="Delete product"
+        message={deleteTarget ? `Remove "${deleteTarget.name}" from the menu?` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          setRemovingKeys((prev) => new Set(prev).add(deleteTarget.id));
+          setTimeout(() => {
+            deleteProduct(deleteTarget.id);
+            setRemovingKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(deleteTarget.id);
+              return next;
+            });
+            setDeleteTarget(null);
+            toast('Product deleted');
+          }, 200);
+        }}
+      />
+
+      <ConfirmDialog
+        visible={!!deleteCat}
+        title="Delete category"
+        message={deleteCat ? `Remove "${deleteCat.name}"?` : ''}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteCat(null)}
+        onConfirm={() => {
+          if (!deleteCat) return;
+          const ok = deleteCategory(deleteCat.id);
+          if (!ok) setCatError(`Cannot delete "${deleteCat.name}" — it still has products assigned to it.`);
+          else toast('Category deleted');
+          setDeleteCat(null);
+        }}
+      />
 
     </Screen>
   );

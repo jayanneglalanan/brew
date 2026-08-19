@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function ConfirmDialog({
   open,
@@ -16,9 +17,9 @@ export default function ConfirmDialog({
   onCancel: () => void;
 }) {
   if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-900/40 p-4" onClick={onCancel}>
-      <div className="card w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div className="animate-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-stone-900/40 p-4" onClick={onCancel}>
+      <div className="animate-panel-in card w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
         <div className="p-5">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600">
@@ -37,6 +38,7 @@ export default function ConfirmDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

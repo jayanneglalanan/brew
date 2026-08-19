@@ -1,5 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, gap, radius } from '../../theme';
+import { DUR, EASE_QUAD, useReducedMotion } from '../../animations';
 
 export default function Card({
   title,
@@ -10,10 +12,26 @@ export default function Card({
   title?: string;
   subtitle?: string;
   children: React.ReactNode;
-  style?: object;
+  style?: StyleProp<ViewStyle>;
 }) {
+  const reduced = useReducedMotion();
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(6)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: DUR.base, useNativeDriver: true, easing: EASE_QUAD }),
+      Animated.timing(translateY, { toValue: 0, duration: DUR.base, useNativeDriver: true, easing: EASE_QUAD }),
+    ]).start();
+  }, [opacity, translateY, reduced]);
+
   return (
-    <View style={[styles.card, style]}>
+    <Animated.View style={[styles.card, { opacity, transform: [{ translateY }] }, style]}>
       {title ? (
         <View style={styles.head}>
           <Text style={styles.title}>{title}</Text>
@@ -21,7 +39,7 @@ export default function Card({
         </View>
       ) : null}
       <View style={title ? styles.body : undefined}>{children}</View>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -9,9 +9,9 @@ const VARIANTS: Record<string, string> = {
   blue: 'bg-blue-50 text-blue-700 border-blue-200',
 };
 
-export default function Badge({ children, variant = 'slate' }: { children: ReactNode; variant?: string }) {
+export default function Badge({ children, variant = 'slate', className = '' }: { children: ReactNode; variant?: string; className?: string }) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${VARIANTS[variant] ?? VARIANTS.slate}`}>
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${VARIANTS[variant] ?? VARIANTS.slate} ${className}`}>
       {children}
     </span>
   );

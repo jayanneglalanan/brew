@@ -1,16 +1,36 @@
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, gap } from '../../theme';
+import { useReducedMotion } from '../../animations';
+import { SkeletonScreen } from './Skeleton';
 
 interface ScreenProps extends ScrollViewProps {
   title: string;
   subtitle?: string;
   sticky?: React.ReactNode;
   floating?: React.ReactNode;
+  skeleton?: boolean;
   children: React.ReactNode;
 }
 
-export default function Screen({ subtitle, sticky, floating, children, ...rest }: ScreenProps) {
+export default function Screen({ subtitle, sticky, floating, skeleton = true, children, ...rest }: ScreenProps) {
+  const reduced = useReducedMotion();
+  const [ready, setReady] = useState(!skeleton);
+
+  useEffect(() => {
+    if (reduced) {
+      setReady(true);
+      return;
+    }
+    if (!skeleton) {
+      setReady(true);
+      return;
+    }
+    const t = setTimeout(() => setReady(true), 300);
+    return () => clearTimeout(t);
+  }, [reduced, skeleton]);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} stickyHeaderIndices={[0]} {...rest}>
@@ -20,7 +40,7 @@ export default function Screen({ subtitle, sticky, floating, children, ...rest }
           </View>
           {sticky}
         </View>
-        {children}
+        {ready ? children : <SkeletonScreen />}
       </ScrollView>
       {floating}
     </SafeAreaView>

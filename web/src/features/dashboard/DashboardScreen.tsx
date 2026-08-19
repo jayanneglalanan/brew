@@ -67,10 +67,10 @@ export default function DashboardScreen() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Net Sales" value={formatPeso(sales.netSales)} icon="💰" delta={delta(sales.netSales, prevSales.netSales)} />
-        <StatCard label="Net Profit" value={formatPeso(profit.netProfit)} icon="📈" delta={delta(profit.netProfit, prevProfit.netProfit)} accent="green" />
-        <StatCard label="Transactions" value={formatNumber(sales.transactions)} icon="🧾" delta={delta(sales.transactions, prevSales.transactions)} accent="blue" />
-        <StatCard label="Profit Margin" value={formatPercent(profit.netMargin)} icon="📊" delta={delta(profit.netMargin, prevProfit.netMargin)} accent="amber" />
+        <StatCard label="Net Sales" count={sales.netSales} format={formatPeso} icon="💰" delta={delta(sales.netSales, prevSales.netSales)} />
+        <StatCard label="Net Profit" count={profit.netProfit} format={formatPeso} icon="📈" delta={delta(profit.netProfit, prevProfit.netProfit)} accent="green" />
+        <StatCard label="Transactions" count={sales.transactions} format={(n) => formatNumber(Math.round(n))} icon="🧾" delta={delta(sales.transactions, prevSales.transactions)} accent="blue" />
+        <StatCard label="Profit Margin" count={profit.netMargin} format={formatPercent} icon="📊" delta={delta(profit.netMargin, prevProfit.netMargin)} accent="amber" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-4">
@@ -173,7 +173,7 @@ export default function DashboardScreen() {
             {inv.lowItems.slice(0, 5).map((it) => (
               <div key={it.item} className="flex items-center justify-between text-sm">
                 <span className="text-stone-700">{it.item}</span>
-                <span className={it.level === 'critical' ? 'font-semibold text-rose-600' : 'text-amber-600'}>
+                <span className={`pulse-once ${it.level === 'critical' ? 'font-semibold text-rose-600' : 'text-amber-600'}`}>
                   {it.current} {it.unit}
                 </span>
               </div>

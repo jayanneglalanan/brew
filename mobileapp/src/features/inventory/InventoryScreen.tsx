@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { History, PackagePlus } from 'lucide-react-native';
 import {
   formatDateTime,
@@ -17,6 +17,10 @@ import Screen from '../../components/ui/Screen';
 import Card from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import Pulse from '../../components/ui/Pulse';
+import AnimatedModal from '../../components/ui/AnimatedModal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { useToast } from '../../components/ui/Toast';
 import RangeFilterDropdown from '../../components/ui/RangeFilterDropdown';
 import Fab from '../../components/ui/Fab';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
@@ -62,6 +66,7 @@ export default function InventoryScreen() {
     updateInventoryItem,
     deleteInventoryItem,
   } = useData();
+  const { toast } = useToast();
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,6 +78,8 @@ export default function InventoryScreen() {
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [itemForm, setItemForm] = useState(EMPTY_FORM);
+  const [removingKeys, setRemovingKeys] = useState<ReadonlySet<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null);
 
   const { range } = useRangeFilter();
 
@@ -95,7 +102,11 @@ export default function InventoryScreen() {
           {formatNumber(r.currentStock)} {r.unit}
         </Text>
       ) },
-    { header: 'Status', key: 'status', width: 1.1, lines: 1, render: (r) => <Badge variant={STATUS_VARIANT[statusFor(r)]}>{statusFor(r)}</Badge> },
+    { header: 'Status', key: 'status', width: 1.1, lines: 1, render: (r) => {
+        const st = statusFor(r);
+        const badge = <Badge variant={STATUS_VARIANT[st]}>{st}</Badge>;
+        return st === 'good' ? badge : <Pulse>{badge}</Pulse>;
+      } },
     { header: 'Actions', key: 'actions', width: 1.4, lines: 1, render: (r) => (
         <View style={{ flexDirection: 'row', gap: 4 }}>
           <Pressable onPress={() => openItemEdit(r)}><Badge variant="brand">Edit</Badge></Pressable>
@@ -112,7 +123,10 @@ export default function InventoryScreen() {
         </Text>
       ) },
     { header: 'Unit', key: 'unit', width: 0.7, lines: 1 },
-    { header: 'Status', key: 'status', width: 1.2, lines: 1, render: (r) => <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge> },
+    { header: 'Status', key: 'status', width: 1.2, lines: 1, render: (r) => {
+        const badge = <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge>;
+        return r.status === 'good' ? badge : <Pulse>{badge}</Pulse>;
+      } },
   ];
 
   const historyCols: Column<(typeof history)[number]>[] = [
@@ -144,6 +158,7 @@ export default function InventoryScreen() {
     setModalOpen(false);
     setMvNote('');
     setMvQty('1');
+    toast(`${TYPE_LABEL[mvType]} recorded`);
   };
 
   const openItemAdd = () => {
@@ -182,13 +197,9 @@ export default function InventoryScreen() {
     if (editingItem) updateInventoryItem({ ...editingItem, ...payload });
     else addInventoryItem(payload);
     setItemModalOpen(false);
+    toast(editingItem ? 'Stock item updated' : 'Stock item added');
   };
-  const confirmDelete = (item: InventoryItem) => {
-    Alert.alert('Delete stock item', `Remove "${item.name}" from inventory?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteInventoryItem(item.id) },
-    ]);
-  };
+  const confirmDelete = (item: InventoryItem) => setDeleteTarget(item);
 
   return (
     <Screen
@@ -226,7 +237,7 @@ export default function InventoryScreen() {
       {tab === 'items' && (
         <Card title="All Stock Items">
           <TextInput style={styles.search} placeholder="Search stock items…" placeholderTextColor={colors.sub} value={search} onChangeText={setSearch} />
-          <Table columns={itemCols} rows={filteredItems} rowKey={(r) => r.id} />
+          <Table columns={itemCols} rows={filteredItems} rowKey={(r) => r.id} fadingKeys={removingKeys} />
         </Card>
       )}
 
@@ -252,70 +263,78 @@ export default function InventoryScreen() {
         </Card>
       )}
 
-      <Modal visible={modalOpen} animationType="slide" transparent onRequestClose={() => setModalOpen(false)}>
-        <View style={styles.modalWrap}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Record Stock Movement</Text>
-            <Text style={styles.miniLabel}>Movement Type</Text>
-            <View style={styles.chipRow}>
-              {MOVEMENT_TYPES.map((t) => (
-                <Pressable key={t} onPress={() => setMvType(t)} style={[styles.chip, mvType === t && styles.chipActive]}>
-                  <Text style={[styles.chipText, mvType === t && styles.chipTextActive]}>{TYPE_LABEL[t]}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <FormField label="Item" value={mvItem} onChangeText={setMvItem} placeholder="Type item name…" />
-            <FormField label="Quantity" keyboardType="default" value={mvQty} onChangeText={setMvQty} />
-            <FormField label="Note" value={mvNote} onChangeText={setMvNote} placeholder="e.g. Expired stock" />
-            <View style={styles.modalActions}>
-              <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+      <AnimatedModal visible={modalOpen} onClose={() => setModalOpen(false)}>
+        <Text style={styles.modalTitle}>Record Stock Movement</Text>
+        <Text style={styles.miniLabel}>Movement Type</Text>
+        <View style={styles.chipRow}>
+          {MOVEMENT_TYPES.map((t) => (
+            <Pressable key={t} onPress={() => setMvType(t)} style={[styles.chip, mvType === t && styles.chipActive]}>
+              <Text style={[styles.chipText, mvType === t && styles.chipTextActive]}>{TYPE_LABEL[t]}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <FormField label="Item" value={mvItem} onChangeText={setMvItem} placeholder="Type item name…" />
+        <FormField label="Quantity" keyboardType="default" value={mvQty} onChangeText={setMvQty} />
+        <FormField label="Note" value={mvNote} onChangeText={setMvNote} placeholder="e.g. Expired stock" />
+        <View style={styles.modalActions}>
+          <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Pressable>
+          <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveMovement} disabled={!mvItem || !mvQty.trim()}>
+            <Text style={styles.saveText}>Save</Text>
+          </Pressable>
+        </View>
+      </AnimatedModal>
+
+      <AnimatedModal visible={itemModalOpen} onClose={() => setItemModalOpen(false)}>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <Text style={styles.modalTitle}>{editingItem ? `Edit ${editingItem.name}` : 'Add Stock Item'}</Text>
+          <FormField label="Stock Item Name" value={itemForm.name} onChangeText={(name) => setItemForm({ ...itemForm, name })} placeholder="e.g. Almond Milk" />
+          <Text style={styles.miniLabel}>Unit of Measurement</Text>
+          <View style={styles.chipRow}>
+            {UNITS.map((u) => (
+              <Pressable key={u} onPress={() => setItemForm({ ...itemForm, unit: u })} style={[styles.chip, itemForm.unit === u && styles.chipActive]}>
+                <Text style={[styles.chipText, itemForm.unit === u && styles.chipTextActive]}>{u}</Text>
               </Pressable>
-              <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveMovement} disabled={!mvItem || !mvQty.trim()}>
-                <Text style={styles.saveText}>Save</Text>
-              </Pressable>
+            ))}
+          </View>
+          <FormField label="Category" value={itemForm.category} onChangeText={(category) => setItemForm({ ...itemForm, category })} placeholder="e.g. Beverage" />
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <FormField label="Current Qty" keyboardType="numeric" value={itemForm.currentStock} onChangeText={(currentStock) => setItemForm({ ...itemForm, currentStock })} />
             </View>
           </View>
-        </View>
-      </Modal>
+          <View style={styles.modalActions}>
+            <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setItemModalOpen(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveItem} disabled={!itemForm.name.trim()}>
+              <Text style={styles.saveText}>Save</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </AnimatedModal>
 
-      <Modal visible={itemModalOpen} animationType="slide" transparent onRequestClose={() => setItemModalOpen(false)}>
-        <View style={styles.modalWrap}>
-          <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>{editingItem ? `Edit ${editingItem.name}` : 'Add Stock Item'}</Text>
-              <FormField label="Stock Item Name" value={itemForm.name} onChangeText={(name) => setItemForm({ ...itemForm, name })} placeholder="e.g. Almond Milk" />
-              <Text style={styles.miniLabel}>Unit of Measurement</Text>
-              <View style={styles.chipRow}>
-                {UNITS.map((u) => (
-                  <Pressable key={u} onPress={() => setItemForm({ ...itemForm, unit: u })} style={[styles.chip, itemForm.unit === u && styles.chipActive]}>
-                    <Text style={[styles.chipText, itemForm.unit === u && styles.chipTextActive]}>{u}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <FormField label="Category" value={itemForm.category} onChangeText={(category) => setItemForm({ ...itemForm, category })} placeholder="e.g. Beverage" />
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <FormField label="Current Qty" keyboardType="numeric" value={itemForm.currentStock} onChangeText={(currentStock) => setItemForm({ ...itemForm, currentStock })} />
-                </View>
-              </View>
-              <View style={styles.modalActions}>
-                <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setItemModalOpen(false)}>
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </Pressable>
-                <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveItem} disabled={!itemForm.name.trim()}>
-                  <Text style={styles.saveText}>Save</Text>
-                </Pressable>
-              </View>
-              {editingItem ? (
-                <Pressable onPress={() => { setItemModalOpen(false); confirmDelete(editingItem); }}>
-                  <Text style={styles.deleteText}>Delete stock item</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title="Delete stock item"
+        message={deleteTarget ? `Remove "${deleteTarget.name}" from inventory?` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          setRemovingKeys((prev) => new Set(prev).add(deleteTarget.id));
+          setTimeout(() => {
+            deleteInventoryItem(deleteTarget.id);
+            setRemovingKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(deleteTarget.id);
+              return next;
+            });
+            setDeleteTarget(null);
+            toast('Stock item deleted');
+          }, 200);
+        }}
+      />
     </Screen>
   );
 }

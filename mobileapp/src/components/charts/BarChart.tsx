@@ -1,7 +1,8 @@
-import { Fragment } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { colors } from '../../theme';
+import { EASE_CUBIC, useReducedMotion } from '../../animations';
 
 export default function BarChart({
   data,
@@ -14,6 +15,21 @@ export default function BarChart({
   barWidth?: number;
   color?: string;
 }) {
+  const reduced = useReducedMotion();
+  const [p, setP] = useState(reduced ? 1 : 0);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      setP(1);
+      return;
+    }
+    anim.setValue(0);
+    const id = anim.addListener(({ value }) => setP(value));
+    Animated.timing(anim, { toValue: 1, duration: 500, easing: EASE_CUBIC, useNativeDriver: false }).start();
+    return () => anim.removeListener(id);
+  }, [anim, reduced]);
+
   const max = Math.max(...data.map((d) => d.value), 1);
   const gapPx = 10;
   const width = data.length * (barWidth + gapPx);
@@ -22,7 +38,7 @@ export default function BarChart({
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <Svg width={Math.max(width, 280)} height={height}>
         {data.map((d, i) => {
-          const h = (d.value / max) * chartH;
+          const h = (d.value / max) * chartH * p;
           const x = i * (barWidth + gapPx);
           const y = height - 18 - h;
           return (
