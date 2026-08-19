@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { SessionUser } from 'mock-data';
-import { loadAuthed, loadUser, saveAuthed, saveUser, clearUser } from './auth';
+import { loadAuthed, loadUser, saveAuthed, saveUser, clearUser, loadProfileName, saveProfileName, loadAvatar, saveAvatar, loadAvatarColor, saveAvatarColor } from './auth';
 
 interface AuthCtx {
   ready: boolean;
@@ -8,7 +8,7 @@ interface AuthCtx {
   user: SessionUser | null;
   login: (user: SessionUser) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (name: string) => Promise<void>;
+  updateProfile: (data: { name: string; avatar: string; avatarColor: string }) => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx>({
@@ -17,7 +17,7 @@ const Ctx = createContext<AuthCtx>({
   user: null,
   login: async () => {},
   logout: async () => {},
-  updateUser: async () => {},
+  updateProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -40,8 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (u: SessionUser) => {
-    await Promise.all([saveAuthed(true), saveUser(u)]);
-    setUser(u);
+    const [savedName, savedAvatar, savedAvatarColor] = await Promise.all([
+      loadProfileName(u.id),
+      loadAvatar(u.id),
+      loadAvatarColor(u.id),
+    ]);
+    const merged = {
+      ...u,
+      name: savedName ?? u.name,
+      avatar: savedAvatar ?? u.avatar,
+      avatarColor: savedAvatarColor ?? u.avatarColor,
+    };
+    await Promise.all([saveAuthed(true), saveUser(merged)]);
+    setUser(merged);
     setAuthed(true);
   }, []);
 
@@ -51,16 +62,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthed(false);
   }, []);
 
-  const updateUser = useCallback(async (name: string) => {
+  const updateProfile = useCallback(async (data: { name: string; avatar: string; avatarColor: string }) => {
     setUser((current) => {
       if (!current) return current;
-      const next = { ...current, name: name.trim() || current.name };
+      const next = {
+        ...current,
+        name: data.name.trim() || current.name,
+        avatar: data.avatar || current.avatar,
+        avatarColor: data.avatarColor || current.avatarColor,
+      };
       saveUser(next);
+      saveProfileName(current.id, next.name);
+      if (data.avatar) saveAvatar(current.id, data.avatar);
+      if (data.avatarColor) saveAvatarColor(current.id, data.avatarColor);
       return next;
     });
   }, []);
 
-  return <Ctx.Provider value={{ ready, authed, user, login, logout, updateUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ ready, authed, user, login, logout, updateProfile }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth(): AuthCtx {

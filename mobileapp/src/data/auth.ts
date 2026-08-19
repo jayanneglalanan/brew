@@ -84,9 +84,65 @@ export async function clearUser(): Promise<void> {
   await storeRemove(userKey());
 }
 
-export function resolveUser(email: string, password: string): SessionUser | null {
-  const account = DEMO_ACCOUNTS.find(
-    (a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.password === password,
-  );
-  return account ? account.user : null;
+export async function loadProfileName(userId: string): Promise<string | null> {
+  return storeGet('kapeflow.profile.' + userId);
+}
+
+export async function saveProfileName(userId: string, name: string): Promise<void> {
+  await storeSet('kapeflow.profile.' + userId, name);
+}
+
+export async function loadEmail(userId: string): Promise<string | null> {
+  return storeGet('kapeflow.email.' + userId);
+}
+
+export async function saveEmail(userId: string, email: string): Promise<void> {
+  await storeSet('kapeflow.email.' + userId, email);
+}
+
+export async function loadPassword(userId: string): Promise<string | null> {
+  return storeGet('kapeflow.password.' + userId);
+}
+
+export async function savePassword(userId: string, password: string): Promise<void> {
+  await storeSet('kapeflow.password.' + userId, password);
+}
+
+export async function loadAvatar(userId: string): Promise<string | null> {
+  return storeGet('kapeflow.avatar.' + userId);
+}
+
+export async function saveAvatar(userId: string, avatar: string): Promise<void> {
+  await storeSet('kapeflow.avatar.' + userId, avatar);
+}
+
+export async function loadAvatarColor(userId: string): Promise<string | null> {
+  return storeGet('kapeflow.avatarColor.' + userId);
+}
+
+export async function saveAvatarColor(userId: string, color: string): Promise<void> {
+  await storeSet('kapeflow.avatarColor.' + userId, color);
+}
+
+export async function resolveUser(email: string, password: string): Promise<SessionUser | null> {
+  for (const account of DEMO_ACCOUNTS) {
+    const storedEmail = await loadEmail(account.user.id);
+    const storedPassword = await loadPassword(account.user.id);
+    const effectiveEmail = storedEmail ?? account.email;
+    const effectivePassword = storedPassword ?? account.password;
+    if (email.trim().toLowerCase() === effectiveEmail.toLowerCase() && password === effectivePassword) {
+      const [name, avatar, avatarColor] = await Promise.all([
+        loadProfileName(account.user.id),
+        loadAvatar(account.user.id),
+        loadAvatarColor(account.user.id),
+      ]);
+      return {
+        ...account.user,
+        name: name ?? account.user.name,
+        avatar: avatar ?? undefined,
+        avatarColor: avatarColor ?? undefined,
+      };
+    }
+  }
+  return null;
 }

@@ -21,6 +21,7 @@ import ProductsScreen from './features/products/ProductsScreen';
 import AnalyticsScreen from './features/analytics/AnalyticsScreen';
 import ProfitScreen from './features/profit/ProfitScreen';
 import ManagementScreen from './features/management/ManagementScreen';
+import SettingsScreen from './features/settings/SettingsScreen';
 import LoginScreen from './features/login/LoginScreen';
 
 export type RootStackParamList = {
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Analytics: { initial?: string } | undefined;
   Profit: undefined;
   Management: { initial?: string } | undefined;
+  Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -123,6 +125,7 @@ function Root() {
         <Stack.Screen name="Analytics" component={AnalyticsScreen} options={{ title: 'Analytics' }} />
         <Stack.Screen name="Profit" component={ProfitScreen} options={{ title: 'Profit & Expenses' }} />
         <Stack.Screen name="Management" component={ManagementScreen} options={{ title: 'Management' }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -14,6 +14,7 @@ import AnalyticsScreen from '@/features/analytics/AnalyticsScreen';
 import ProfitScreen from '@/features/profit/ProfitScreen';
 import ReportsScreen from '@/features/reports/ReportsScreen';
 import ManagementScreen from '@/features/management/ManagementScreen';
+import SettingsScreen from '@/features/settings/SettingsScreen';
 import LoginScreen from '@/features/login/LoginScreen';
 
 const PATH_KEY: Array<{ prefix: string; key: NavKey }> = [
@@ -56,6 +57,7 @@ function Gate() {
         <Route path="profit" element={<RoleGuard><ProfitScreen /></RoleGuard>} />
         <Route path="reports" element={<RoleGuard><ReportsScreen /></RoleGuard>} />
         <Route path="management" element={<RoleGuard><ManagementScreen /></RoleGuard>} />
+        <Route path="settings" element={<SettingsScreen />} />
         <Route path="*" element={<RoleGuard><DashboardScreen /></RoleGuard>} />
       </Route>
     </Routes>

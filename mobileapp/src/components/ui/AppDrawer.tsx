@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
@@ -13,7 +13,7 @@ const ITEMS = [
   { key: 'products', label: 'Products & Menu', icon: '☕', desc: 'Menu items, cost & profitability', route: 'Products' as const },
   { key: 'analytics', label: 'Analytics', icon: '📈', desc: 'Top sellers, trending & peak hours', route: 'Analytics' as const },
   { key: 'profit', label: 'Profit & Expenses', icon: '💵', desc: 'Revenue, COGS, expenses & net profit', route: 'Profit' as const },
-  { key: 'management', label: 'Management', icon: '⚙️', desc: 'Staff, audit logs & settings', route: 'Management' as const },
+  { key: 'management', label: 'Management', icon: '⚙️', desc: 'Staff and audit logs', route: 'Management' as const },
 ];
 
 const ALLOWED_BY_ROLE: Record<string, string[]> = {
@@ -82,15 +82,26 @@ export default function AppDrawer({ open, onClose, user }: { open: boolean; onCl
           </View>
 
           {user ? (
-            <View style={styles.userCard}>
-              <View style={styles.userAvatar}>
-                <Text style={styles.userAvatarText}>{user.name.charAt(0)}</Text>
+            <Pressable
+              style={styles.userCard}
+              onPress={() => {
+                onClose();
+                nav.navigate('Settings');
+              }}
+            >
+              <View style={[styles.userAvatar, { backgroundColor: user.avatarColor ?? colors.brand }]}>
+                {user.avatar ? (
+                  <Image source={{ uri: user.avatar }} style={styles.userAvatarImg} />
+                ) : (
+                  <Text style={styles.userAvatarText}>{user.name.charAt(0)}</Text>
+                )}
               </View>
               <View style={{ flex: 1, marginLeft: gap.md }}>
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userRole}>{user.role}</Text>
               </View>
-            </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           ) : null}
 
           <Text style={styles.sectionLabel}>Tools & Management</Text>
@@ -166,7 +177,8 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(61,48,42,0.1)',
   },
   userCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F1E8', borderRadius: radius.md, padding: gap.md, marginBottom: gap.lg },
-  userAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
+  userAvatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  userAvatarImg: { width: 38, height: 38, borderRadius: 19 },
   userAvatarText: { fontSize: 15, fontWeight: '800', color: '#fff' },
   userName: { fontSize: 14, fontWeight: '800', color: colors.onCard },
   userRole: { fontSize: 12, textTransform: 'capitalize', color: colors.onCardSub, marginTop: 1 },

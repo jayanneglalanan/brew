@@ -35,4 +35,6 @@ export interface SessionUser {
   id: string;
   name: string;
   role: StaffRole;
+  avatar?: string;
+  avatarColor?: string;
 }

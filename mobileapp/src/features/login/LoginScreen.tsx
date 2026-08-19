@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Lock, Mail } from 'lucide-react-native';
@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import FloatingInput from './FloatingInput';
 import { resolveUser, DEMO_ACCOUNTS } from '../../data/auth';
 import { useAuth } from '../../data/AuthContext';
+import { useShopName } from '../../data/ShopNameContext';
 import { loginColors as C } from './tokens';
 import type { RootStackParamList } from '../../App';
 
@@ -14,6 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
   const { login } = useAuth();
+  const { shopName, logoImage } = useShopName();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,13 +36,13 @@ export default function LoginScreen({ navigation }: Props) {
     }, 1500);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (loading) return;
     if (!email.trim() || !password.trim()) {
       setError('Please enter your email and password.');
       return;
     }
-    const user = resolveUser(email, password);
+    const user = await resolveUser(email, password);
     if (!user) {
       setError('Invalid email or password. Use one of the demo accounts below.');
       return;
@@ -70,9 +72,9 @@ export default function LoginScreen({ navigation }: Props) {
         >
           <View style={styles.brandMark}>
             <View style={styles.brandTile}>
-              <Text style={styles.brandEmoji}>☕</Text>
+              {logoImage ? <Image source={{ uri: logoImage }} style={styles.brandTileImg} /> : <Text style={styles.brandEmoji}>☕</Text>}
             </View>
-            <Text style={styles.brand}>KapeFlow</Text>
+            <Text style={styles.brand}>{shopName}</Text>
             <Text style={styles.subtitle}>Good Coffee, Good Day</Text>
           </View>
 
@@ -170,6 +172,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   brandEmoji: { fontSize: 34 },
+  brandTileImg: { width: 72, height: 72, borderRadius: 22 },
   brand: { fontSize: 28, fontWeight: '800', color: C.text, marginTop: 14 },
   subtitle: { fontSize: 14, color: C.textSub, fontStyle: 'italic', marginTop: 8 },
   form: { width: '100%', maxWidth: 420, alignSelf: 'center' },

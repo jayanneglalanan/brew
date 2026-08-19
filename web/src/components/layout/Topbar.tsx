@@ -42,7 +42,9 @@ export default function Topbar() {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-stone-200 bg-white px-6">
       <div className="flex items-center gap-3 text-sm text-stone-500">
-        <span className="font-medium text-stone-900">☕ {shopName}</span>
+        <span className="flex items-center gap-1.5 font-medium text-stone-900">
+          ☕ {shopName}
+        </span>
         <span className="text-stone-300">|</span>
         <span>{formatDateTime(new Date().toISOString())}</span>
       </div>

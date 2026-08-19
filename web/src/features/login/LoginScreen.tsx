@@ -2,11 +2,13 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/app/AuthContext';
+import { useShopName } from '@/app/ShopNameContext';
 import { DEMO_ACCOUNTS, resolveUser } from '@/app/auth';
 import { homePathForRole } from 'mock-data';
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const { shopName, logoImage } = useShopName();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,16 +54,18 @@ export default function LoginScreen() {
     <div className="login-layout">
       <aside className="login-brand">
         <div className="login-brand-inner">
-          <div className="login-brand-tile">☕</div>
-          <h1 className="login-brand-name">KapeFlow</h1>
+          <div className="login-brand-tile">
+            {logoImage ? <img src={logoImage} alt="logo" className="h-12 w-12 rounded-2xl object-cover" /> : '☕'}
+          </div>
+          <h1 className="login-brand-name">{shopName}</h1>
           <p className="login-brand-tagline">Good Coffee, Good Day</p>
         </div>
       </aside>
 
       <main className="login-form-col">
         <div className="login-mobile-brand">
-          <span className="login-mobile-tile">☕</span>
-          <span>KapeFlow</span>
+          <span className="login-mobile-tile">{logoImage ? <img src={logoImage} alt="logo" className="h-5 w-5 rounded object-cover" /> : '☕'}</span>
+          <span>{shopName}</span>
         </div>
 
         <div className="login-panel w-full max-w-[500px] px-7 pb-8 pt-7 sm:px-9">
