@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AuditLog, Category, InventoryItem, Product, StockMovementEntry, Transaction } from 'mock-data';
+import type { AuditLog, Category, Expense, InventoryItem, Product, StockMovementEntry, Transaction } from 'mock-data';
 
 export interface DataSnapshot {
   version: number;
@@ -10,6 +10,7 @@ export interface DataSnapshot {
   transactions: Transaction[];
   auditLogs: AuditLog[];
   categories: Category[];
+  expenses: Expense[];
 }
 
 const KEY = 'kapeflow.state.v1';

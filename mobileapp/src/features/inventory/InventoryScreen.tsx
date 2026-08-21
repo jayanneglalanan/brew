@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, Image, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { History, PackagePlus } from 'lucide-react-native';
 import {
   formatDateTime,
@@ -8,8 +9,9 @@ import {
   getInventorySummary,
   getStockStatusRows,
   getWastage,
+  type Expense,
+  type ExpenseCategory,
   type InventoryItem,
-  type StockMovementEntry,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
 import { useRangeFilter } from '../../data/RangeFilterContext';
@@ -34,11 +36,13 @@ const TABS = [
   { value: 'history', label: 'History' },
   { value: 'low', label: 'Low Stock' },
   { value: 'wastage', label: 'Wastage' },
+  { value: 'expenses', label: 'Expenses' },
 ];
 
 const STATUS_VARIANT: Record<string, string> = { good: 'good', low: 'low', critical: 'critical' };
 const TYPE_LABEL: Record<string, string> = { purchase: 'Purchase', sale: 'Sale', wastage: 'Wastage', damaged: 'Damaged', adjustment: 'Adjustment' };
-const MOVEMENT_TYPES: StockMovementEntry['type'][] = ['wastage', 'damaged'];
+const EXPENSE_CATEGORIES: ExpenseCategory[] = ['rent', 'utilities', 'supplies', 'payroll', 'maintenance', 'marketing', 'other'];
+const EXPENSE_CATEGORY_LABEL: Record<string, string> = { rent: 'Rent', utilities: 'Utilities', supplies: 'Supplies', payroll: 'Payroll', maintenance: 'Maintenance', marketing: 'Marketing', other: 'Other' };
 const UNITS = ['kg', 'g', 'L', 'mL', 'pcs', 'ct', 'pack'];
 
 const EMPTY_FORM = {
@@ -61,16 +65,20 @@ export default function InventoryScreen() {
   const {
     inventory,
     stockMovements,
+    expenses,
     recordMovement,
     addInventoryItem,
     updateInventoryItem,
     deleteInventoryItem,
+    addExpense,
+    updateExpense,
+    deleteExpense,
   } = useData();
   const { toast } = useToast();
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [mvType, setMvType] = useState<StockMovementEntry['type']>('wastage');
+  const [mvType, setMvType] = useState<'wastage' | 'damaged' | 'expense'>('wastage');
   const [mvItem, setMvItem] = useState('');
   const [mvQty, setMvQty] = useState('1');
   const [mvNote, setMvNote] = useState('');
@@ -81,6 +89,12 @@ export default function InventoryScreen() {
   const [removingKeys, setRemovingKeys] = useState<ReadonlySet<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null);
 
+  const [expForm, setExpForm] = useState({ name: '', amount: '', category: 'supplies' as ExpenseCategory, description: '', receiptImage: '' });
+  const [expenseEditTarget, setExpenseEditTarget] = useState<Expense | null>(null);
+  const [expenseDeleteTarget, setExpenseDeleteTarget] = useState<Expense | null>(null);
+  const [expenseEditOpen, setExpenseEditOpen] = useState(false);
+  const [receiptViewTarget, setReceiptViewTarget] = useState<string | null>(null);
+
   const { range } = useRangeFilter();
 
   const summary = useMemo(() => getInventorySummary(inventory), [inventory]);
@@ -88,11 +102,35 @@ export default function InventoryScreen() {
   const wastage = useMemo(() => getWastage(stockMovements, inventory, range), [stockMovements, inventory, range]);
   const lowRows = useMemo(() => statusRows.filter((r) => r.status !== 'good'), [statusRows]);
   const filteredItems = inventory.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
-  const history = useMemo(
-    () => [...stockMovements].sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
-    [stockMovements],
-  );
   const nameById = useMemo(() => new Map(inventory.map((i) => [i.id, i.name])), [inventory]);
+  type HistoryRow = {
+    id: string;
+    timestamp: string;
+    itemName: string;
+    type: string;
+    qty: number | string;
+    note: string | undefined;
+  };
+
+  const history = useMemo(() => {
+    const mvRows: HistoryRow[] = stockMovements.map((m) => ({
+      id: m.id,
+      timestamp: m.timestamp,
+      itemName: nameById.get(m.itemId) ?? m.itemId,
+      type: m.type,
+      qty: m.qty,
+      note: m.note,
+    }));
+    const expRows: HistoryRow[] = expenses.map((e) => ({
+      id: `exp-hist-${e.id}`,
+      timestamp: e.timestamp,
+      itemName: e.name,
+      type: 'expense',
+      qty: e.amount,
+      note: e.description ?? EXPENSE_CATEGORY_LABEL[e.category] ?? e.category,
+    }));
+    return [...mvRows, ...expRows].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  }, [stockMovements, expenses, nameById]);
 
   const itemCols: Column<InventoryItem>[] = [
     { header: 'Stock Item', key: 'name', width: 1.5, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
@@ -129,15 +167,21 @@ export default function InventoryScreen() {
       } },
   ];
 
-  const historyCols: Column<(typeof history)[number]>[] = [
+  const historyCols: Column<HistoryRow>[] = [
     { header: 'Timestamp', key: 'timestamp', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
-    { header: 'Item', key: 'itemId', width: 1.3, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{nameById.get(r.itemId) ?? r.itemId}</Text> },
-    { header: 'Type', key: 'type', width: 1.0, lines: 1, render: (r) => <Badge variant={r.type === 'damaged' ? 'critical' : r.type === 'wastage' ? 'low' : r.type === 'purchase' ? 'good' : 'brand'}>{TYPE_LABEL[r.type]}</Badge> },
-    { header: 'Qty', key: 'qty', width: 0.9, lines: 1, render: (r) => (
-        <Text style={{ color: typeof r.qty === 'number' ? (r.qty < 0 ? colors.critical : colors.good) : colors.sub, fontWeight: '700' }} numberOfLines={1}>
-          {typeof r.qty === 'number' ? `${r.qty > 0 ? '+' : ''}${formatNumber(r.qty)}` : r.qty}
-        </Text>
-      ) },
+    { header: 'Item', key: 'itemName', width: 1.3, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.itemName}</Text> },
+    { header: 'Type', key: 'type', width: 1.0, lines: 1, render: (r) => {
+        const variant = r.type === 'expense' ? 'amber' : r.type === 'damaged' ? 'critical' : r.type === 'wastage' ? 'low' : r.type === 'purchase' ? 'good' : 'brand';
+        return <Badge variant={variant}>{r.type === 'expense' ? 'Expense' : TYPE_LABEL[r.type]}</Badge>;
+      } },
+    { header: 'Qty / Amount', key: 'qty', width: 0.9, lines: 1, render: (r) => {
+        if (r.type === 'expense') return <Text style={{ color: colors.critical, fontWeight: '700' }} numberOfLines={1}>{formatPeso(typeof r.qty === 'number' ? r.qty : 0)}</Text>;
+        return (
+          <Text style={{ color: typeof r.qty === 'number' ? (r.qty < 0 ? colors.critical : colors.good) : colors.sub, fontWeight: '700' }} numberOfLines={1}>
+            {typeof r.qty === 'number' ? `${r.qty > 0 ? '+' : ''}${formatNumber(r.qty)}` : r.qty}
+          </Text>
+        );
+      } },
     { header: 'Note', key: 'note', width: 1.4, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{r.note ?? '—'}</Text> },
   ];
 
@@ -150,6 +194,23 @@ export default function InventoryScreen() {
   ];
 
   const saveMovement = () => {
+    if (mvType === 'expense') {
+      if (!expForm.name.trim() || !expForm.amount.trim()) return;
+      const amount = Number(expForm.amount);
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      addExpense({
+        name: expForm.name.trim(),
+        amount,
+        category: expForm.category,
+        description: expForm.description.trim() || undefined,
+        receiptImage: expForm.receiptImage || undefined,
+        timestamp: new Date().toISOString(),
+      });
+      toast(`${expForm.name.trim()} expense recorded`);
+      setModalOpen(false);
+      setExpForm({ name: '', amount: '', category: 'supplies', description: '', receiptImage: '' });
+      return;
+    }
     const item = inventory.find((i) => i.name.trim().toLowerCase() === mvItem.trim().toLowerCase());
     const raw = mvQty.trim();
     if (!item || !raw) return;
@@ -200,6 +261,68 @@ export default function InventoryScreen() {
     toast(editingItem ? 'Stock item updated' : 'Stock item added');
   };
   const confirmDelete = (item: InventoryItem) => setDeleteTarget(item);
+
+  const expenseCols: Column<Expense>[] = [
+    { header: 'Expense', key: 'name', width: 1.5, lines: 2, render: (r) => <Text style={[styles.bold, styles.center]}>{r.name}</Text> },
+    { header: 'Category', key: 'category', width: 1.1, lines: 1, render: (r) => <Badge variant="slate">{EXPENSE_CATEGORY_LABEL[r.category] ?? r.category}</Badge> },
+    { header: 'Amount', key: 'amount', width: 1.1, lines: 1, render: (r) => <Text style={{ color: colors.critical, fontWeight: '700' }} numberOfLines={1}>{formatPeso(r.amount)}</Text> },
+    { header: 'Date', key: 'timestamp', width: 1.2, lines: 2, render: (r) => <Text style={styles.muted} numberOfLines={2}>{formatDateTime(r.timestamp)}</Text> },
+    { header: 'Receipt', key: 'receiptImage', width: 0.9, lines: 1, render: (r) => r.receiptImage ? (
+        <Pressable onPress={() => setReceiptViewTarget(r.receiptImage!)}><Badge variant="good">View</Badge></Pressable>
+      ) : <Text style={[styles.muted, { textAlign: 'center' }]}>—</Text> },
+    { header: 'Actions', key: 'actions', width: 1.2, lines: 1, render: (r) => (
+        <View style={{ flexDirection: 'row', gap: 4 }}>
+          <Pressable onPress={() => openExpenseEdit(r)}><Badge variant="brand">Edit</Badge></Pressable>
+          <Pressable onPress={() => setExpenseDeleteTarget(r)}><Badge variant="critical">Del</Badge></Pressable>
+        </View>
+      ) },
+  ];
+
+  const openExpenseEdit = (expense: Expense) => {
+    setExpenseEditTarget(expense);
+    setExpForm({
+      name: expense.name,
+      amount: String(expense.amount),
+      category: expense.category,
+      description: expense.description ?? '',
+      receiptImage: expense.receiptImage ?? '',
+    });
+    setExpenseEditOpen(true);
+  };
+
+  const saveExpenseEdit = () => {
+    if (!expenseEditTarget || !expForm.name.trim() || !expForm.amount.trim()) return;
+    const amount = Number(expForm.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    updateExpense({
+      ...expenseEditTarget,
+      name: expForm.name.trim(),
+      amount,
+      category: expForm.category,
+      description: expForm.description.trim() || undefined,
+      receiptImage: expForm.receiptImage || undefined,
+    });
+    toast(`${expForm.name.trim()} expense updated`);
+    setExpenseEditOpen(false);
+    setExpenseEditTarget(null);
+    setExpForm({ name: '', amount: '', category: 'supplies', description: '', receiptImage: '' });
+  };
+
+  const pickReceipt = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+      base64: true,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    const asset = result.assets[0];
+    if (asset.base64) {
+      setExpForm((prev) => ({ ...prev, receiptImage: `data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}` }));
+    } else if (asset.uri) {
+      setExpForm((prev) => ({ ...prev, receiptImage: asset.uri }));
+    }
+  };
 
   return (
     <Screen
@@ -263,27 +386,72 @@ export default function InventoryScreen() {
         </Card>
       )}
 
+      {tab === 'expenses' && (
+        <Card title="All Expenses" subtitle="Recorded inventory-related expenses">
+          <Table columns={expenseCols} rows={[...expenses].sort((a, b) => b.timestamp.localeCompare(a.timestamp))} rowKey={(r) => r.id} />
+        </Card>
+      )}
+
       <AnimatedModal visible={modalOpen} onClose={() => setModalOpen(false)}>
-        <Text style={styles.modalTitle}>Record Stock Movement</Text>
-        <Text style={styles.miniLabel}>Movement Type</Text>
-        <View style={styles.chipRow}>
-          {MOVEMENT_TYPES.map((t) => (
-            <Pressable key={t} onPress={() => setMvType(t)} style={[styles.chip, mvType === t && styles.chipActive]}>
-              <Text style={[styles.chipText, mvType === t && styles.chipTextActive]}>{TYPE_LABEL[t]}</Text>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <Text style={styles.modalTitle}>Record Stock Movement</Text>
+          <Text style={styles.miniLabel}>Movement Type</Text>
+          <View style={styles.chipRow}>
+            {(['wastage', 'damaged', 'expense'] as const).map((t) => (
+              <Pressable key={t} onPress={() => setMvType(t)} style={[styles.chip, mvType === t && styles.chipActive]}>
+                <Text style={[styles.chipText, mvType === t && styles.chipTextActive]}>{t === 'expense' ? 'Expenses' : TYPE_LABEL[t]}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {mvType === 'expense' ? (
+            <>
+              <FormField label="Expense Name" value={expForm.name} onChangeText={(v) => setExpForm({ ...expForm, name: v })} placeholder="e.g. Coffee Bean Restock" />
+              <FormField label="Amount (₱)" keyboardType="numeric" value={expForm.amount} onChangeText={(v) => setExpForm({ ...expForm, amount: v })} placeholder="0.00" />
+              <Text style={styles.miniLabel}>Category</Text>
+              <View style={styles.chipRow}>
+                {EXPENSE_CATEGORIES.map((c) => (
+                  <Pressable key={c} onPress={() => setExpForm({ ...expForm, category: c })} style={[styles.chip, expForm.category === c && styles.chipActive]}>
+                    <Text style={[styles.chipText, expForm.category === c && styles.chipTextActive]}>{EXPENSE_CATEGORY_LABEL[c]}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <FormField label="Description / Notes" value={expForm.description} onChangeText={(v) => setExpForm({ ...expForm, description: v })} placeholder="Optional details" />
+              <Text style={styles.miniLabel}>Receipt Photo (optional)</Text>
+              {expForm.receiptImage ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: gap.md }}>
+                  <Badge variant="good">Receipt attached</Badge>
+                  <Pressable onPress={() => setExpForm({ ...expForm, receiptImage: '' })}>
+                    <Text style={{ color: colors.critical, fontSize: 12, fontWeight: '600' }}>Remove</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={[styles.chip, { marginBottom: gap.md }]} onPress={pickReceipt}>
+                  <Text style={styles.chipText}>📷 Choose photo…</Text>
+                </Pressable>
+              )}
+            </>
+          ) : (
+            <>
+              <FormField label="Item" value={mvItem} onChangeText={setMvItem} placeholder="Type item name…" />
+              <FormField label="Quantity" keyboardType="default" value={mvQty} onChangeText={setMvQty} />
+              <FormField label="Note" value={mvNote} onChangeText={setMvNote} placeholder="e.g. Expired stock" />
+            </>
+          )}
+
+          <View style={styles.modalActions}>
+            <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
             </Pressable>
-          ))}
-        </View>
-        <FormField label="Item" value={mvItem} onChangeText={setMvItem} placeholder="Type item name…" />
-        <FormField label="Quantity" keyboardType="default" value={mvQty} onChangeText={setMvQty} />
-        <FormField label="Note" value={mvNote} onChangeText={setMvNote} placeholder="e.g. Expired stock" />
-        <View style={styles.modalActions}>
-          <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalOpen(false)}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </Pressable>
-          <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveMovement} disabled={!mvItem || !mvQty.trim()}>
-            <Text style={styles.saveText}>Save</Text>
-          </Pressable>
-        </View>
+            <Pressable
+              style={[styles.modalBtn, styles.saveBtn]}
+              onPress={saveMovement}
+              disabled={mvType === 'expense' ? (!expForm.name.trim() || !expForm.amount.trim()) : (!mvItem || !mvQty.trim())}
+            >
+              <Text style={styles.saveText}>Save</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </AnimatedModal>
 
       <AnimatedModal visible={itemModalOpen} onClose={() => setItemModalOpen(false)}>
@@ -335,6 +503,69 @@ export default function InventoryScreen() {
           }, 200);
         }}
       />
+
+      <AnimatedModal visible={expenseEditOpen} onClose={() => { setExpenseEditOpen(false); setExpenseEditTarget(null); }}>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <Text style={styles.modalTitle}>{expenseEditTarget ? `Edit ${expenseEditTarget.name}` : 'Add Expense'}</Text>
+          <FormField label="Expense Name" value={expForm.name} onChangeText={(v) => setExpForm({ ...expForm, name: v })} placeholder="e.g. Coffee Bean Restock" />
+          <FormField label="Amount (₱)" keyboardType="numeric" value={expForm.amount} onChangeText={(v) => setExpForm({ ...expForm, amount: v })} placeholder="0.00" />
+          <Text style={styles.miniLabel}>Category</Text>
+          <View style={styles.chipRow}>
+            {EXPENSE_CATEGORIES.map((c) => (
+              <Pressable key={c} onPress={() => setExpForm({ ...expForm, category: c })} style={[styles.chip, expForm.category === c && styles.chipActive]}>
+                <Text style={[styles.chipText, expForm.category === c && styles.chipTextActive]}>{EXPENSE_CATEGORY_LABEL[c]}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <FormField label="Description / Notes" value={expForm.description} onChangeText={(v) => setExpForm({ ...expForm, description: v })} placeholder="Optional details" />
+          <Text style={styles.miniLabel}>Receipt Photo (optional)</Text>
+          {expForm.receiptImage ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: gap.md }}>
+              <Badge variant="good">Receipt attached</Badge>
+              <Pressable onPress={() => setExpForm({ ...expForm, receiptImage: '' })}>
+                <Text style={{ color: colors.critical, fontSize: 12, fontWeight: '600' }}>Remove</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable style={[styles.chip, { marginBottom: gap.md }]} onPress={pickReceipt}>
+              <Text style={styles.chipText}>📷 Choose photo…</Text>
+            </Pressable>
+          )}
+          <View style={styles.modalActions}>
+            <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => { setExpenseEditOpen(false); setExpenseEditTarget(null); }}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable style={[styles.modalBtn, styles.saveBtn]} onPress={saveExpenseEdit} disabled={!expForm.name.trim() || !expForm.amount.trim()}>
+              <Text style={styles.saveText}>Save</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </AnimatedModal>
+
+      <ConfirmDialog
+        visible={!!expenseDeleteTarget}
+        title="Delete expense"
+        message={expenseDeleteTarget ? `Remove "${expenseDeleteTarget.name}" from expenses?` : ''}
+        onCancel={() => setExpenseDeleteTarget(null)}
+        onConfirm={() => {
+          if (!expenseDeleteTarget) return;
+          deleteExpense(expenseDeleteTarget.id);
+          setExpenseDeleteTarget(null);
+          toast('Expense deleted');
+        }}
+      />
+
+      <AnimatedModal visible={!!receiptViewTarget} onClose={() => setReceiptViewTarget(null)}>
+        <Text style={styles.modalTitle}>Receipt</Text>
+        {receiptViewTarget && (
+          <Image source={{ uri: receiptViewTarget }} style={{ width: '100%', height: 300, borderRadius: radius.md, resizeMode: 'contain' }} />
+        )}
+        <View style={styles.modalActions}>
+          <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setReceiptViewTarget(null)}>
+            <Text style={styles.cancelText}>Close</Text>
+          </Pressable>
+        </View>
+      </AnimatedModal>
     </Screen>
   );
 }

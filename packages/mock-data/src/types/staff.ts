@@ -20,6 +20,9 @@ export type AuditAction =
   | 'product.created'
   | 'product.updated'
   | 'product.deleted'
+  | 'expense.created'
+  | 'expense.updated'
+  | 'expense.deleted'
   | 'staff.login';
 
 export interface AuditLog {

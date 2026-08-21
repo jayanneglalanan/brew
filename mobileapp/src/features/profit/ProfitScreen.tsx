@@ -21,9 +21,9 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export default function ProfitScreen() {
-  const { products, transactions } = useData();
+  const { products, transactions, expenses } = useData();
   const { range } = useRangeFilter();
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, expenses, range]);
 
   const expByCat = useMemo(() => {
     const map = new Map<ExpenseCategory, number>();
@@ -32,7 +32,7 @@ export default function ProfitScreen() {
       if (ts >= range.start.getTime() && ts <= range.end.getTime()) map.set(e.category, (map.get(e.category) ?? 0) + e.amount);
     }
     return map;
-  }, [range]);
+  }, [range, expenses]);
 
   const expenseRows = expenses.filter((e) => {
     const ts = new Date(e.timestamp).getTime();
@@ -68,7 +68,6 @@ export default function ProfitScreen() {
         {[...expByCat.entries()].map(([cat, amount]) => (
           <View key={cat} style={styles.row}>
             <Text style={styles.bold}>{CATEGORY_LABEL[cat] ?? cat}</Text>
-            <Text style={styles.muted}>{formatPercent(profit.operatingExpenses ? amount / profit.operatingExpenses : 0, 0)} of opex</Text>
             <Text style={styles.bold}>{formatPeso(amount)}</Text>
           </View>
         ))}

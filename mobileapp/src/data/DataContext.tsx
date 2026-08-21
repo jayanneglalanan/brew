@@ -59,6 +59,9 @@ interface DataValue {
   addCategory: (name: string, icon: string) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (id: string) => boolean;
+  addExpense: (expense: Omit<Expense, 'id'>) => void;
+  updateExpense: (expense: Expense) => void;
+  deleteExpense: (id: string) => void;
   recordMovement: (input: MovementInput) => void;
   recordTransaction: (input: TransactionInput) => Transaction;
   logAudit: (action: AuditAction, target: string, actorId?: string, detail?: string) => void;
@@ -94,8 +97,8 @@ let orderCounter = maxOrderNumber(seedTransactions);
 const nextId = (prefix: string) => `${prefix}-${++idCounter}`;
 const nextOrder = () => `KF-${++orderCounter}`;
 
-function syncCounters(products: Product[], movements: StockMovementEntry[], transactions: Transaction[], auditLogs: AuditLog[], inventory: InventoryItem[], categories: Category[]) {
-  idCounter = maxNumericSuffix([...products, ...movements, ...transactions, ...auditLogs, ...inventory, ...categories].map((x) => x.id));
+function syncCounters(products: Product[], movements: StockMovementEntry[], transactions: Transaction[], auditLogs: AuditLog[], inventory: InventoryItem[], categories: Category[], expenses?: Expense[]) {
+  idCounter = maxNumericSuffix([...products, ...movements, ...transactions, ...auditLogs, ...inventory, ...categories, ...(expenses ?? [])].map((x) => x.id));
   orderCounter = maxOrderNumber(transactions);
 }
 
@@ -106,6 +109,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>(seedTransactions);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(seedAuditLogs);
   const [categories, setCategories] = useState<Category[]>(seedCategories);
+  const [expenses, setExpenses] = useState<Expense[]>(seedExpenses);
   const [hydrated, setHydrated] = useState(false);
   const [actorId, setActorId] = useState<string>(seedStaff[0].id);
 
@@ -115,13 +119,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       if (user) setActorId(user.id);
       if (snap && snap.seedSignature === SEED_SIGNATURE) {
-        syncCounters(snap.products, snap.stockMovements, snap.transactions, snap.auditLogs, snap.inventory, snap.categories);
+        syncCounters(snap.products, snap.stockMovements, snap.transactions, snap.auditLogs, snap.inventory, snap.categories, snap.expenses);
         setProducts(snap.products);
         setInventory(snap.inventory);
         setMovements(snap.stockMovements);
         setTransactions(snap.transactions);
         setAuditLogs(snap.auditLogs);
         setCategories(snap.categories);
+        setExpenses(snap.expenses);
       }
       setHydrated(true);
     });
@@ -141,8 +146,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       transactions,
       auditLogs,
       categories,
+      expenses,
     });
-  }, [hydrated, products, inventory, movements, transactions, auditLogs, categories]);
+  }, [hydrated, products, inventory, movements, transactions, auditLogs, categories, expenses]);
 
   const value = useMemo<DataValue>(() => {
     const logAudit = (action: AuditAction, target: string, actorIdOverride?: string, detail?: string) => {
@@ -217,13 +223,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const resetData = async () => {
       await clearSnapshot();
-      syncCounters(seedProducts, seedMovements, seedTransactions, seedAuditLogs, seedInventory, seedCategories);
+      syncCounters(seedProducts, seedMovements, seedTransactions, seedAuditLogs, seedInventory, seedCategories, seedExpenses);
       setProducts(seedProducts);
       setInventory(seedInventory);
       setMovements(seedMovements);
       setTransactions(seedTransactions);
       setAuditLogs(seedAuditLogs);
       setCategories(seedCategories);
+      setExpenses(seedExpenses);
     };
 
     return {
@@ -233,7 +240,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       transactions,
       categories,
       staff: seedStaff,
-      expenses: seedExpenses,
+      expenses,
       auditLogs,
       addProduct: (p) => {
         const id = nextId('p');
@@ -279,6 +286,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         logAudit('product.updated', id, undefined, 'category deleted');
         return true;
       },
+      addExpense: (expense) => {
+        const id = nextId('exp');
+        setExpenses((prev) => [...prev, { ...expense, id }]);
+        logAudit('expense.created', expense.name, undefined, id);
+      },
+      updateExpense: (expense) => {
+        setExpenses((prev) => prev.map((x) => (x.id === expense.id ? expense : x)));
+        logAudit('expense.updated', expense.name, undefined, expense.id);
+      },
+      deleteExpense: (id) => {
+        const target = expenses.find((e) => e.id === id)?.name ?? id;
+        setExpenses((prev) => prev.filter((x) => x.id !== id));
+        logAudit('expense.deleted', target, undefined, `deleted · ${id}`);
+      },
       recordMovement: ({ type, itemId, qty, note, timestamp }) => {
         const entry: StockMovementEntry = {
           id: nextId('mv'),
@@ -304,7 +325,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logAudit,
       resetData,
     };
-  }, [products, inventory, movements, transactions, auditLogs, categories, actorId]);
+  }, [products, inventory, movements, transactions, auditLogs, categories, expenses, actorId]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

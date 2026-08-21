@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import {
-  expenses,
   formatDateTime,
   formatNumber,
   formatPercent,
@@ -40,7 +39,7 @@ const PAYMENT_LABEL: Record<string, string> = { cash: 'Cash', gcash: 'GCash', ca
 const PAYMENT_VARIANT: Record<string, string> = { cash: 'good', gcash: 'blue', card: 'low' };
 
 export default function SalesScreen() {
-  const { products, transactions } = useData();
+  const { products, transactions, expenses } = useData();
   const { range } = useRangeFilter();
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
@@ -51,7 +50,7 @@ export default function SalesScreen() {
     cat: getCategoryBreakdown(transactions, products, range),
     pay: getPaymentBreakdown(transactions, range),
     daily: getDailySalesShort(transactions, range),
-  }), [range, products, transactions]);
+  }), [range, products, transactions, expenses]);
 
   const staffName = useMemo(() => new Map(staff.map((s) => [s.id, s.name])), []);
   const inRange = (t: (typeof transactions)[number]) => {

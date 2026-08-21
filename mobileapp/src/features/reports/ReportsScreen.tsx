@@ -11,7 +11,6 @@ import {
   getSalesByRange,
   getStaffPerformance,
   getStockStatusRows,
-  expenses,
   staff,
 } from 'mock-data';
 import { useData } from '../../data/DataContext';
@@ -32,7 +31,7 @@ const TABS = [
 ];
 
 export default function ReportsScreen() {
-  const { products, inventory, transactions } = useData();
+  const { products, inventory, transactions, expenses } = useData();
   const [tab, setTab] = useState('sales');
   const { range } = useRangeFilter();
   const week = useMemo(() => getDateRange('week'), []);
@@ -50,12 +49,12 @@ export default function ReportsScreen() {
         const p = getProfitSummary(transactions, products, expenses, r);
         return { label, sales: s.netSales, tx: s.transactions, profit: p.netProfit };
       }),
-    [today, week, month, transactions, products],
+    [today, week, month, transactions, products, expenses],
   );
   const daily = useMemo(() => getDailySalesShort(transactions, range), [transactions, range]);
   const inv = useMemo(() => getInventorySummary(inventory), [inventory]);
   const stockRows = useMemo(() => getStockStatusRows(inventory), [inventory]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, expenses, range]);
   const staffRows = useMemo(() => getStaffPerformance(transactions, staff, range), [transactions, range]);
 
   const periodCols: Column<(typeof periodRows)[number]>[] = [

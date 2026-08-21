@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   DAY_MS,
-  expenses,
   formatNumber,
   formatPercent,
   formatPeso,
@@ -28,13 +27,13 @@ import Donut from '../../components/charts/Donut';
 import { colors, gap } from '../../theme';
 
 export default function DashboardScreen() {
-  const { products, inventory, stockMovements, transactions } = useData();
+  const { products, inventory, stockMovements, transactions, expenses } = useData();
   const { range } = useRangeFilter();
   const now = useMemo(() => new Date(), []);
   const week = useMemo(() => ({ start: new Date(now.getTime() - 6 * DAY_MS), end: now, label: 'Last 7 days' }), [now]);
 
   const sales = useMemo(() => getSalesByRange(transactions, range), [transactions, range]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, range]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [transactions, products, expenses, range]);
   const top = useMemo(() => getTopProducts(transactions, products, range, 'sales', 5), [transactions, products, range]);
   const trending = useMemo(() => getTrendingProducts(transactions, products, range, 5), [transactions, products, range]);
   const inv = useMemo(() => getInventorySummary(inventory), [inventory]);

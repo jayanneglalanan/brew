@@ -59,6 +59,9 @@ interface DataValue {
   addCategory: (name: string, icon: string) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (id: string) => boolean;
+  addExpense: (expense: Omit<Expense, 'id'>) => void;
+  updateExpense: (expense: Expense) => void;
+  deleteExpense: (id: string) => void;
   recordMovement: (input: MovementInput) => void;
   recordTransaction: (input: TransactionInput) => Transaction;
   logAudit: (action: AuditAction, target: string, actorId?: string, detail?: string) => void;
@@ -82,6 +85,7 @@ const initialMovements = hasSnapshot ? snapshot.stockMovements : seedMovements;
 const initialTransactions = hasSnapshot ? snapshot.transactions : seedTransactions;
 const initialAuditLogs = hasSnapshot ? snapshot.auditLogs : seedAuditLogs;
 const initialCategories = hasSnapshot && snapshot.categories ? snapshot.categories : seedCategories;
+const initialExpenses = hasSnapshot && snapshot.expenses ? snapshot.expenses : seedExpenses;
 
 function maxNumericSuffix(ids: string[]): number {
   let max = 1000;
@@ -106,6 +110,7 @@ let idCounter = maxNumericSuffix([
   ...initialAuditLogs,
   ...initialInventory,
   ...initialCategories,
+  ...initialExpenses,
 ].map((x) => x.id));
 let orderCounter = maxOrderNumber(initialTransactions);
 const nextId = (prefix: string) => `${prefix}-${++idCounter}`;
@@ -119,6 +124,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
 
   useEffect(() => {
     saveSnapshot({
@@ -130,8 +136,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       transactions,
       auditLogs,
       categories,
+      expenses,
     });
-  }, [products, inventory, movements, transactions, auditLogs, categories]);
+  }, [products, inventory, movements, transactions, auditLogs, categories, expenses]);
 
   const value = useMemo<DataValue>(() => {
     const actorId = user?.id ?? seedStaff[0].id;
@@ -207,7 +214,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const resetData = () => {
       clearSnapshot();
-      idCounter = maxNumericSuffix([...seedProducts, ...seedMovements, ...seedTransactions, ...seedAuditLogs, ...seedInventory, ...seedCategories].map((x) => x.id));
+      idCounter = maxNumericSuffix([...seedProducts, ...seedMovements, ...seedTransactions, ...seedAuditLogs, ...seedInventory, ...seedCategories, ...seedExpenses].map((x) => x.id));
       orderCounter = maxOrderNumber(seedTransactions);
       setProducts(seedProducts);
       setInventory(seedInventory);
@@ -215,6 +222,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setTransactions(seedTransactions);
       setAuditLogs(seedAuditLogs);
       setCategories(seedCategories);
+      setExpenses(seedExpenses);
     };
 
     return {
@@ -224,7 +232,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       transactions,
       categories,
       staff: seedStaff,
-      expenses: seedExpenses,
+      expenses,
       auditLogs,
       addProduct: (p) => {
         const id = nextId('p');
@@ -270,6 +278,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         logAudit('product.updated', id, undefined, 'category deleted');
         return true;
       },
+      addExpense: (expense) => {
+        const id = nextId('exp');
+        setExpenses((prev) => [...prev, { ...expense, id }]);
+        logAudit('expense.created', expense.name, undefined, id);
+      },
+      updateExpense: (expense) => {
+        setExpenses((prev) => prev.map((x) => (x.id === expense.id ? expense : x)));
+        logAudit('expense.updated', expense.name, undefined, expense.id);
+      },
+      deleteExpense: (id) => {
+        const target = expenses.find((e) => e.id === id)?.name ?? id;
+        setExpenses((prev) => prev.filter((x) => x.id !== id));
+        logAudit('expense.deleted', target, undefined, `deleted · ${id}`);
+      },
       recordMovement: ({ type, itemId, qty, note, timestamp }) => {
         const entry: StockMovementEntry = {
           id: nextId('mv'),
@@ -295,7 +317,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logAudit,
       resetData,
     };
-  }, [products, inventory, movements, transactions, auditLogs, categories, user]);
+  }, [products, inventory, movements, transactions, auditLogs, categories, expenses, user]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

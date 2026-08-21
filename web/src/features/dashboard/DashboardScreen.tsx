@@ -1,5 +1,4 @@
 import {
-  expenses,
   getCategoryBreakdown,
   getDailySales,
   getExceptions,
@@ -36,7 +35,7 @@ function delta(current: number, previous: number): number | undefined {
 }
 
 export default function DashboardScreen() {
-  const { transactions, products, inventory, stockMovements } = useData();
+  const { transactions, products, inventory, stockMovements, expenses } = useData();
   const { filter, range } = useRangeFilter();
   const prev = previousPeriod(range);
   const sales = getSalesByRange(transactions, range);

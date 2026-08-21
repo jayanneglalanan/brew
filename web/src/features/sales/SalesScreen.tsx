@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  expenses,
   formatDateTime,
   formatNumber,
   formatPercent,
@@ -39,7 +38,7 @@ const PAYMENT_BADGE: Record<string, string> = { cash: 'green', gcash: 'blue', ca
 const STATUS_BADGE: Record<string, string> = { completed: 'good', voided: 'amber', refunded: 'critical' };
 
 export default function SalesScreen() {
-  const { products, transactions } = useData();
+  const { products, transactions, expenses } = useData();
   const { range } = useRangeFilter();
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
@@ -50,7 +49,7 @@ export default function SalesScreen() {
     cat: getCategoryBreakdown(transactions, products, range),
     pay: getPaymentBreakdown(transactions, range),
     daily: getDailySalesShort(transactions, range),
-  }), [range, products, transactions]);
+  }), [range, products, transactions, expenses]);
 
   const inRange = (t: typeof transactions[number]) => {
     const ts = new Date(t.timestamp).getTime();

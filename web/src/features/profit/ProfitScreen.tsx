@@ -5,7 +5,6 @@ import {
   formatPeso,
   getProfitSummary,
   getSalesByRange,
-  expenses,
   type ExpenseCategory,
   type Expense,
 } from 'mock-data';
@@ -39,10 +38,10 @@ const CATEGORY_COLOR: Record<string, string> = {
 };
 
 export default function ProfitScreen() {
-  const { products, transactions } = useData();
+  const { products, transactions, expenses } = useData();
   const { range } = useRangeFilter();
 
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, products, transactions]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, products, transactions, expenses]);
   const sales = useMemo(() => getSalesByRange(transactions, range), [range, transactions]);
   const expByCat = useMemo(() => {
     const map = new Map<ExpenseCategory, number>();
@@ -53,7 +52,7 @@ export default function ProfitScreen() {
       }
     }
     return map;
-  }, [range]);
+  }, [range, expenses]);
   const expRows = [...expByCat.entries()].map(([cat, amount]) => ({
     cat,
     label: CATEGORY_LABEL[cat] ?? cat,
@@ -118,7 +117,6 @@ export default function ProfitScreen() {
             { header: 'Expense', key: 'name', render: (r) => <span className="font-medium text-stone-800">{r.name}</span> },
             { header: 'Category', key: 'category', render: (r) => <Badge variant="slate">{CATEGORY_LABEL[r.category] ?? r.category}</Badge> },
             { header: 'Amount', key: 'amount', render: (r) => <b>{formatPeso(r.amount)}</b> },
-            { header: 'Recurring', key: 'recurring', render: (r) => (r.recurring ? <Badge variant="blue">recurring</Badge> : <span className="text-stone-500">—</span>) },
             { header: 'Date', key: 'timestamp', render: (r) => formatDateTime(r.timestamp) },
           ]}
           rows={expenses.filter((e: Expense) => {

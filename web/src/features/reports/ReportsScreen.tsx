@@ -10,7 +10,6 @@ import {
   getSalesByRange,
   getStaffPerformance,
   getStockStatusRows,
-  expenses,
   staff,
 } from 'mock-data';
 import { useData } from '@/app/DataContext';
@@ -35,7 +34,7 @@ interface PeriodRow {
 }
 
 export default function ReportsScreen() {
-  const { products, transactions, inventory } = useData();
+  const { products, transactions, inventory, expenses } = useData();
   const [tab, setTab] = useState('sales');
   const { range } = useRangeFilter();
   const week = useMemo(() => getDateRange('week'), []);
@@ -55,14 +54,14 @@ export default function ReportsScreen() {
         const p = getProfitSummary(transactions, products, expenses, range);
         return { period: label, sales: s.netSales, transactions: s.transactions, profit: p.netProfit };
       }),
-    [today, week, month, transactions, products],
+    [today, week, month, transactions, products, expenses],
   );
 
   const dailyRows = useMemo(() => getDailySalesShort(transactions, range), [range, transactions]);
   const invSummary = useMemo(() => getInventorySummary(inventory), [inventory]);
   const stockRows = useMemo(() => getStockStatusRows(inventory), [inventory]);
   const staffRows = useMemo(() => getStaffPerformance(transactions, staff, range), [range, transactions]);
-  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, transactions, products]);
+  const profit = useMemo(() => getProfitSummary(transactions, products, expenses, range), [range, transactions, products, expenses]);
 
   const periodColumns: Column<PeriodRow>[] = [
     { header: 'Period', key: 'period', render: (r) => <b className="text-stone-800">{r.period}</b> },

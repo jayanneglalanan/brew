@@ -7,4 +7,6 @@ export interface Expense {
   amount: number;
   timestamp: string;
   recurring?: boolean;
+  description?: string;
+  receiptImage?: string;
 }
