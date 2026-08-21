@@ -5,6 +5,12 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8B6F5A"
+    },
     "newArchEnabled": false,
     "experiments": {
       "baseUrl": "/mobile"
@@ -16,7 +22,11 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.kapeflow.admin"
+      "package": "com.kapeflow.admin",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#8B6F5A"
+      }
     }
   }
 }

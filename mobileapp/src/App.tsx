@@ -2,9 +2,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, Text, View } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { colors } from './theme';
 import { DataProvider } from './data/DataContext';
 import { AuthProvider, useAuth } from './data/AuthContext';
@@ -13,6 +14,8 @@ import { ShopNameProvider } from './data/ShopNameContext';
 import AppDrawer from './components/ui/AppDrawer';
 import BottomTabBar from './components/ui/BottomTabBar';
 import { ToastProvider } from './components/ui/Toast';
+
+SplashScreen.preventAutoHideAsync();
 
 import DashboardScreen from './features/dashboard/DashboardScreen';
 import SalesScreen from './features/sales/SalesScreen';
@@ -105,6 +108,13 @@ function Tabs() {
 
 function Root() {
   const { ready, authed } = useAuth();
+
+  useEffect(() => {
+    if (ready) {
+      SplashScreen.hideAsync();
+    }
+  }, [ready]);
+
   if (!ready) {
     return <View style={{ flex: 1, backgroundColor: '#FAF3EA' }} />;
   }

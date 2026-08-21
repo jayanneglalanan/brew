@@ -27,13 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let on = true;
-    Promise.all([loadAuthed(), loadUser()]).then(([a, u]) => {
-      if (on) {
-        setAuthed(a);
-        setUser(u);
-        setReady(true);
-      }
-    });
+    Promise.all([loadAuthed(), loadUser()])
+      .then(([a, u]) => {
+        if (on) {
+          setAuthed(a);
+          setUser(u);
+          setReady(true);
+        }
+      })
+      .catch(() => {
+        if (on) setReady(true);
+      });
     return () => {
       on = false;
     };

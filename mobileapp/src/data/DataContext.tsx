@@ -115,21 +115,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadSnapshot(), loadUser()]).then(([snap, user]) => {
-      if (cancelled) return;
-      if (user) setActorId(user.id);
-      if (snap && snap.seedSignature === SEED_SIGNATURE) {
-        syncCounters(snap.products, snap.stockMovements, snap.transactions, snap.auditLogs, snap.inventory, snap.categories, snap.expenses);
-        setProducts(snap.products);
-        setInventory(snap.inventory);
-        setMovements(snap.stockMovements);
-        setTransactions(snap.transactions);
-        setAuditLogs(snap.auditLogs);
-        setCategories(snap.categories);
-        setExpenses(snap.expenses);
-      }
-      setHydrated(true);
-    });
+    Promise.all([loadSnapshot(), loadUser()])
+      .then(([snap, user]) => {
+        if (cancelled) return;
+        if (user) setActorId(user.id);
+        if (snap && snap.seedSignature === SEED_SIGNATURE) {
+          syncCounters(snap.products, snap.stockMovements, snap.transactions, snap.auditLogs, snap.inventory, snap.categories, snap.expenses);
+          setProducts(snap.products);
+          setInventory(snap.inventory);
+          setMovements(snap.stockMovements);
+          setTransactions(snap.transactions);
+          setAuditLogs(snap.auditLogs);
+          setCategories(snap.categories);
+          setExpenses(snap.expenses);
+        }
+        setHydrated(true);
+      })
+      .catch(() => {
+        if (!cancelled) setHydrated(true);
+      });
     return () => {
       cancelled = true;
     };
