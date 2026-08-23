@@ -5,9 +5,10 @@ const PHONE_MAX_WIDTH = 520;
 
 function MobileShell() {
   const isPhone = window.innerWidth <= PHONE_MAX_WIDTH;
+  const dvhSupported = CSS.supports('height', '100dvh');
 
   return (
-    <div style={{ height: '100vh', height: '100dvh', width: '100%', background: '#d6d2ce' }}>
+    <div style={{ height: dvhSupported ? '100dvh' : '100vh', width: '100%', background: '#d6d2ce' }}>
       <div
         style={{
           height: '100%',
