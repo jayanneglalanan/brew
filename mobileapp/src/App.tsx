@@ -15,7 +15,7 @@ import AppDrawer from './components/ui/AppDrawer';
 import BottomTabBar from './components/ui/BottomTabBar';
 import { ToastProvider } from './components/ui/Toast';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 import DashboardScreen from './features/dashboard/DashboardScreen';
 import SalesScreen from './features/sales/SalesScreen';
@@ -111,7 +111,7 @@ function Root() {
 
   useEffect(() => {
     if (ready) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [ready]);
 

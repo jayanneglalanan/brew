@@ -7,16 +7,21 @@ function MobileShell() {
   const isPhone = window.innerWidth <= PHONE_MAX_WIDTH;
 
   return (
-    <div className="h-[100dvh] w-full bg-stone-200">
+    <div style={{ height: '100vh', height: '100dvh', width: '100%', background: '#d6d2ce' }}>
       <div
-        className={`mx-auto h-full bg-white ${
-          isPhone ? 'max-w-none' : 'max-w-[460px] shadow-[0_0_40px_rgba(0,0,0,0.18)]'
-        }`}
+        style={{
+          height: '100%',
+          width: '100%',
+          maxWidth: isPhone ? 'none' : '460px',
+          margin: '0 auto',
+          background: '#fff',
+          boxShadow: isPhone ? 'none' : '0 0 40px rgba(0,0,0,0.18)',
+        }}
       >
         <iframe
           title="KapeFlow Mobile"
-          src="/mobile/index.html?v=4"
-          className="h-full w-full border-0"
+          src="/mobile/index.html?v=5"
+          style={{ height: '100%', width: '100%', border: '0' }}
         />
       </div>
     </div>
